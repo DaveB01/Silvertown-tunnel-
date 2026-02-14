@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment files (keep examples)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+
+# Prisma
+prisma/migrations/*_migration_lock.toml
+
+# iOS
+ios/SilvertownInspector.xcodeproj/project.xcworkspace/xcuserdata/
+ios/SilvertownInspector.xcodeproj/xcuserdata/
+ios/*.xcuserstate
+DerivedData/
+
+# Misc
+.claude/
+*.backup

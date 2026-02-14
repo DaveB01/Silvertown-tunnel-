@@ -1,0 +1,407 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		22B164CF838F9164542B371D /* AssetListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF24521C2BEDB551854500D /* AssetListView.swift */; };
+		545B9111A44DC6619CA462E5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACBE5752EE411B4AA2EB9ED /* ContentView.swift */; };
+		71CEE344A9BF384BB7238016 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A80172B46D748DE619BC8D9 /* APIService.swift */; };
+		7C7EC1D7018ECECF0917610F /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D12709D9153818D01B41B4 /* LoginView.swift */; };
+		A32C3992E37166D703EB44FA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A9DDE887126A2270B8BBD583 /* Assets.xcassets */; };
+		A59D17EE6C38C17B3DB05783 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 449525AE7EC2A32ED214DEE6 /* SyncManager.swift */; };
+		B22194FA640F060C705CFF6B /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1237699FCFDCD36665F6B4A /* Models.swift */; };
+		C52B0E0D92912EF4AFCD151D /* ConditionGradeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FE83799136A77089DD11AD2 /* ConditionGradeBadge.swift */; };
+		CB3E7A0A20E968412EDA55D9 /* NewInspectionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDE81B9C0FEA9651E1141D3 /* NewInspectionFormView.swift */; };
+		CE3722324C8471102C87FD3C /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B169F24CA13D0292B278BFDB /* AuthManager.swift */; };
+		E2C119DFE169D584061B8F68 /* SilvertownInspectorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEBB69C53B6E0E29EFC5ED1B /* SilvertownInspectorApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1FE83799136A77089DD11AD2 /* ConditionGradeBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionGradeBadge.swift; sourceTree = "<group>"; };
+		449525AE7EC2A32ED214DEE6 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
+		4A80172B46D748DE619BC8D9 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		5BDE81B9C0FEA9651E1141D3 /* NewInspectionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewInspectionFormView.swift; sourceTree = "<group>"; };
+		6DF24521C2BEDB551854500D /* AssetListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetListView.swift; sourceTree = "<group>"; };
+		8ACBE5752EE411B4AA2EB9ED /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A082E74F2B4E9296722BE6CC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A1237699FCFDCD36665F6B4A /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		A1530EEFF3C7B7C5E6768F6D /* SilvertownInspector.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SilvertownInspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9DDE887126A2270B8BBD583 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B169F24CA13D0292B278BFDB /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		BEBB69C53B6E0E29EFC5ED1B /* SilvertownInspectorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SilvertownInspectorApp.swift; sourceTree = "<group>"; };
+		E3D2802044838032CD1DC87C /* SilvertownInspector.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SilvertownInspector.entitlements; sourceTree = "<group>"; };
+		F9D12709D9153818D01B41B4 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		13FE1D73E9253757C01CD2DA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A9DDE887126A2270B8BBD583 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		4858990287CEC7FD8458C844 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				4A80172B46D748DE619BC8D9 /* APIService.swift */,
+				B169F24CA13D0292B278BFDB /* AuthManager.swift */,
+				449525AE7EC2A32ED214DEE6 /* SyncManager.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		59A253D528733826A6CFC043 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				1FE83799136A77089DD11AD2 /* ConditionGradeBadge.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		5AE2FF5C213038402AA52B39 /* SilvertownInspector */ = {
+			isa = PBXGroup;
+			children = (
+				A082E74F2B4E9296722BE6CC /* Info.plist */,
+				E3D2802044838032CD1DC87C /* SilvertownInspector.entitlements */,
+				BEBB69C53B6E0E29EFC5ED1B /* SilvertownInspectorApp.swift */,
+				67E65C5C11D2A8739D15C466 /* Models */,
+				13FE1D73E9253757C01CD2DA /* Resources */,
+				4858990287CEC7FD8458C844 /* Services */,
+				894E7888DC6E5DC1FC646557 /* Views */,
+			);
+			path = SilvertownInspector;
+			sourceTree = "<group>";
+		};
+		67E65C5C11D2A8739D15C466 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A1237699FCFDCD36665F6B4A /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		894E7888DC6E5DC1FC646557 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				6DF24521C2BEDB551854500D /* AssetListView.swift */,
+				8ACBE5752EE411B4AA2EB9ED /* ContentView.swift */,
+				F9D12709D9153818D01B41B4 /* LoginView.swift */,
+				5BDE81B9C0FEA9651E1141D3 /* NewInspectionFormView.swift */,
+				59A253D528733826A6CFC043 /* Components */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		EA41AD52A1DB432123BBEBDD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A1530EEFF3C7B7C5E6768F6D /* SilvertownInspector.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F8462EEDE3E9EA568F686C5E = {
+			isa = PBXGroup;
+			children = (
+				5AE2FF5C213038402AA52B39 /* SilvertownInspector */,
+				EA41AD52A1DB432123BBEBDD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3330AF7B5A3244029A5C5AC6 /* SilvertownInspector */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 857B4A2D127FC1CA12ED8AAC /* Build configuration list for PBXNativeTarget "SilvertownInspector" */;
+			buildPhases = (
+				DCDEDF2EC38A155F153C3A3F /* Sources */,
+				3D88F132688BD0294ECA16C4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SilvertownInspector;
+			packageProductDependencies = (
+			);
+			productName = SilvertownInspector;
+			productReference = A1530EEFF3C7B7C5E6768F6D /* SilvertownInspector.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D84E93440115B100C5E56127 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					3330AF7B5A3244029A5C5AC6 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = E0550F311DE1D5DF05B07392 /* Build configuration list for PBXProject "SilvertownInspector" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = F8462EEDE3E9EA568F686C5E;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3330AF7B5A3244029A5C5AC6 /* SilvertownInspector */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3D88F132688BD0294ECA16C4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A32C3992E37166D703EB44FA /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DCDEDF2EC38A155F153C3A3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				71CEE344A9BF384BB7238016 /* APIService.swift in Sources */,
+				22B164CF838F9164542B371D /* AssetListView.swift in Sources */,
+				CE3722324C8471102C87FD3C /* AuthManager.swift in Sources */,
+				C52B0E0D92912EF4AFCD151D /* ConditionGradeBadge.swift in Sources */,
+				545B9111A44DC6619CA462E5 /* ContentView.swift in Sources */,
+				7C7EC1D7018ECECF0917610F /* LoginView.swift in Sources */,
+				B22194FA640F060C705CFF6B /* Models.swift in Sources */,
+				CB3E7A0A20E968412EDA55D9 /* NewInspectionFormView.swift in Sources */,
+				E2C119DFE169D584061B8F68 /* SilvertownInspectorApp.swift in Sources */,
+				A59D17EE6C38C17B3DB05783 /* SyncManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3591CE328CB85AB662A6A51B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SilvertownInspector/SilvertownInspector.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SilvertownInspector/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is needed to take photos during inspections";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Photo library access is needed to attach existing photos to inspections";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "uk.co.infratec.silvertown-inspector";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		7BA41D56C1FF4DE10579A7F1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SilvertownInspector/SilvertownInspector.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SilvertownInspector/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is needed to take photos during inspections";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Photo library access is needed to attach existing photos to inspections";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "uk.co.infratec.silvertown-inspector";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		984435B7939C3B5565450979 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		F9A652717BA0B3D9B621E13A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		857B4A2D127FC1CA12ED8AAC /* Build configuration list for PBXNativeTarget "SilvertownInspector" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7BA41D56C1FF4DE10579A7F1 /* Debug */,
+				3591CE328CB85AB662A6A51B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E0550F311DE1D5DF05B07392 /* Build configuration list for PBXProject "SilvertownInspector" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				984435B7939C3B5565450979 /* Debug */,
+				F9A652717BA0B3D9B621E13A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D84E93440115B100C5E56127 /* Project object */;
+}

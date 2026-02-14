@@ -1,0 +1,380 @@
+// Silvertown Tunnel Asset Inspection System - Database Schema
+// PostgreSQL with Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// USER & AUTHENTICATION
+// =============================================================================
+
+enum Role {
+  ADMIN
+  MANAGER
+  ENGINEER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?   // Null if SSO-only user
+  firstName     String
+  lastName      String
+  displayName   String    // Computed: firstName + lastName
+  role          Role      @default(ENGINEER)
+  isActive      Boolean   @default(true)
+
+  // SSO fields (future-ready)
+  ssoProvider   String?   // 'azure_ad', 'google', etc.
+  ssoId         String?
+
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+
+  // Relations
+  inspections   Inspection[]
+  auditLogs     AuditLog[]
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId    String?  // For mobile device tracking
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  revokedAt   DateTime?
+
+  @@index([token])
+  @@index([userId])
+}
+
+// =============================================================================
+// ASSETS
+// =============================================================================
+
+model Asset {
+  id          String   @id @default(cuid())
+
+  // Hierarchy levels
+  level1      String   @default("MEP") // Top category: e.g., "MEP"
+  level2      String   // Sub-category: e.g., "COMMS", "Electrical", "Mechanical"
+  level3      String   // Asset type: e.g., "Cables", "Distribution Board", "AHU"
+
+  // Identification
+  assetId     String   @unique // Unique identifier from import (e.g., "M120012S1CMC8428")
+  assetCode   String?  // Short asset code (e.g., "CMC") - not unique
+  title       String?  // Full asset title (e.g., "Comms cable COM-80001 - ...")
+
+  // Location
+  zone        String   // Tunnel zone: e.g., "Northbound", "Southbound"
+  region      String?  // Geographic region: e.g., "Tunnel", "Portal"
+  space       String?  // Specific space/location within zone
+
+  // Additional metadata
+  description String?  @db.Text // Detailed description
+  facility    String?  // Facility name: e.g., "Silvertown Tunnel"
+  specification String? // Document reference: e.g., "ST150030-COW-POW-40-ZZ-REQ-EE-0002"
+  assetType   String?  // Type classification: e.g., "Project Facilities"
+  system      String?  // System name
+
+  // Legacy/compatibility
+  location    String?  // More specific location within zone (kept for compatibility)
+
+  // Import tracking
+  importBatchId String? // Track which import created/updated this asset
+
+  // Inspection tracking (denormalized for fast queries, updated on inspection submit)
+  lastInspectionId        String?
+  lastInspectionDate      DateTime?
+  lastConditionGrade      ConditionGrade?
+  lastRiskScore           Int?
+  lastInspectorName       String?
+  inspectionCount         Int              @default(0)
+
+  // Inspection scheduling
+  inspectionFrequencyMonths Int            @default(12)  // Default yearly
+  nextInspectionDue       DateTime?
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  inspections Inspection[]
+
+  @@index([level1])
+  @@index([level2])
+  @@index([level3])
+  @@index([zone])
+  @@index([region])
+  @@index([assetId])
+  @@index([assetCode])
+  @@index([facility])
+  @@index([level2, level3, zone]) // Compound index for common filter combo
+  @@index([lastInspectionDate])
+  @@index([lastConditionGrade])
+  @@index([nextInspectionDue])
+}
+
+// =============================================================================
+// INSPECTIONS
+// =============================================================================
+
+enum InspectionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+  SUBMITTED
+}
+
+enum ConditionGrade {
+  GRADE_1 // No deterioration
+  GRADE_2 // Minor deterioration
+  GRADE_3 // Moderate deterioration
+  GRADE_4 // Significant deterioration
+  GRADE_5 // Severe deterioration / failure
+}
+
+model Inspection {
+  id               String           @id @default(cuid())
+
+  // Asset reference
+  assetId          String
+  asset            Asset            @relation(fields: [assetId], references: [id])
+
+  // Inspector
+  engineerId       String
+  engineer         User             @relation(fields: [engineerId], references: [id])
+  inspectorName    String?          // Manual inspector name override (dropdown or typed)
+
+  // Inspection data
+  dateOfInspection DateTime
+  conditionGrade   ConditionGrade
+  comments         String?          @db.Text // Rich text stored as HTML or markdown
+
+  // Defect assessment (shown when conditionGrade > GRADE_1)
+  defectSeverity      Int?          // 1-5 severity rating
+  riskScore           Int?          // Calculated: conditionGrade value * defectSeverity
+  defectDescription   String?       @db.Text
+  observedIssues      String?       @db.Text
+  recommendedAction   String?       @db.Text
+  followUpRequired    Boolean?      @default(false)
+
+  // Status workflow
+  status           InspectionStatus @default(NOT_STARTED)
+  submittedAt      DateTime?        // When status changed to SUBMITTED
+
+  // Offline sync tracking
+  clientId         String?          // UUID generated on mobile device
+  syncVersion      Int              @default(1) // Incremented on each server update
+  lastSyncedAt     DateTime?
+
+  // Timestamps
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  media            Media[]
+  reports          GeneratedReport[]
+
+  @@unique([clientId]) // Ensure offline-created inspections don't duplicate
+  @@index([assetId])
+  @@index([engineerId])
+  @@index([dateOfInspection])
+  @@index([status])
+  @@index([zone]) // Denormalized for faster queries
+
+  // Denormalized fields for faster queries (updated via trigger/application)
+  zone             String?          // Copied from asset.zone for direct filtering
+}
+
+// =============================================================================
+// MEDIA
+// =============================================================================
+
+enum MediaType {
+  PHOTO
+  VIDEO
+}
+
+model Media {
+  id           String     @id @default(cuid())
+
+  // Inspection reference
+  inspectionId String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  // Media details
+  type         MediaType
+  filename     String     // Original filename
+  mimeType     String     // e.g., "image/jpeg", "video/mp4"
+  fileSize     Int        // Size in bytes
+
+  // Storage
+  storageKey   String     // S3 key
+  storageUrl   String     // Full S3 URL (base, not signed)
+  thumbnailKey String?    // S3 key for thumbnail
+  thumbnailUrl String?    // Full S3 URL for thumbnail
+
+  // Metadata
+  caption      String?
+  capturedAt   DateTime   // When the photo/video was taken
+
+  // Video-specific
+  duration     Int?       // Duration in seconds (video only)
+
+  // Offline sync
+  clientId     String?    @unique // For offline-created media
+  uploadStatus String     @default("complete") // pending, uploading, complete, failed
+
+  // Timestamps
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([inspectionId])
+  @@index([type])
+}
+
+// =============================================================================
+// GENERATED REPORTS
+// =============================================================================
+
+model GeneratedReport {
+  id           String     @id @default(cuid())
+
+  // Inspection reference
+  inspectionId String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  // Report storage
+  pdfKey       String     // S3 key
+  pdfUrl       String     // Full S3 URL (base, not signed)
+
+  // Email tracking
+  emailedTo    String[]   // Array of email addresses
+  emailStatus  String     @default("not_sent") // not_sent, sending, sent, failed
+  emailSentAt  DateTime?
+  emailError   String?    // Error message if failed
+
+  // Generation metadata
+  generatedAt  DateTime   @default(now())
+  generatedBy  String?    // System or user ID who triggered generation
+  templateVersion String  @default("1.0")
+
+  // Timestamps
+  createdAt    DateTime   @default(now())
+
+  @@index([inspectionId])
+}
+
+// =============================================================================
+// AUDIT LOGGING
+// =============================================================================
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  EXPORT
+  IMPORT
+  EMAIL_SENT
+  PDF_GENERATED
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+
+  // Who
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userEmail   String?     // Denormalized for when user is deleted
+
+  // What
+  action      AuditAction
+  entityType  String      // 'asset', 'inspection', 'user', etc.
+  entityId    String?     // ID of the affected entity
+
+  // Details
+  description String      // Human-readable description
+  metadata    Json?       // Additional context (old values, new values, etc.)
+
+  // Where
+  ipAddress   String?
+  userAgent   String?
+
+  // When
+  createdAt   DateTime    @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// IMPORT BATCHES
+// =============================================================================
+
+model ImportBatch {
+  id           String   @id @default(cuid())
+
+  // Import details
+  filename     String
+  fileSize     Int
+  rowCount     Int      // Total rows in file
+
+  // Results
+  successCount Int      @default(0)
+  errorCount   Int      @default(0)
+  skipCount    Int      @default(0) // Duplicates skipped
+
+  // Status
+  status       String   @default("pending") // pending, processing, complete, failed
+  errors       Json?    // Array of error details
+
+  // Column mapping used
+  columnMapping Json    // { "A": "level2", "B": "level3", ... }
+
+  // Who/when
+  importedBy   String
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+
+  @@index([status])
+  @@index([importedBy])
+}
+
+// =============================================================================
+// SYSTEM SETTINGS
+// =============================================================================
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json     // Flexible value storage
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@index([key])
+}
+
+// Example settings:
+// - "branding": { "primaryColor": "#003366", "logoUrl": "...", "companyName": "INFRATEC" }
+// - "emailRecipients": { "default": ["reports@infratec.co.uk"], "cc": [] }
+// - "retentionDays": { "auditLogs": 365, "media": 2555 }
