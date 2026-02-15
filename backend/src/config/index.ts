@@ -36,18 +36,18 @@ export const config = {
   jwtExpiry: optionalEnv('JWT_EXPIRY', '15m'),
   refreshTokenExpiry: parseInt(optionalEnv('REFRESH_TOKEN_EXPIRY_DAYS', '7'), 10),
 
-  // AWS S3
+  // AWS S3 (optional - for media uploads)
   aws: {
     region: optionalEnv('AWS_REGION', 'eu-west-2'),
-    accessKeyId: requireEnv('AWS_ACCESS_KEY_ID'),
-    secretAccessKey: requireEnv('AWS_SECRET_ACCESS_KEY'),
-    s3Bucket: requireEnv('AWS_S3_BUCKET'),
+    accessKeyId: optionalEnv('AWS_ACCESS_KEY_ID', ''),
+    secretAccessKey: optionalEnv('AWS_SECRET_ACCESS_KEY', ''),
+    s3Bucket: optionalEnv('AWS_S3_BUCKET', ''),
     cloudfrontUrl: optionalEnv('CLOUDFRONT_URL', ''),
   },
 
-  // SendGrid
+  // SendGrid (optional - for email)
   sendgrid: {
-    apiKey: requireEnv('SENDGRID_API_KEY'),
+    apiKey: optionalEnv('SENDGRID_API_KEY', ''),
     fromEmail: optionalEnv('SENDGRID_FROM_EMAIL', 'noreply@infratec.co.uk'),
     fromName: optionalEnv('SENDGRID_FROM_NAME', 'INFRATEC Inspections'),
   },
