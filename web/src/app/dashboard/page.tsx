@@ -385,7 +385,7 @@ export default function DashboardPage() {
                     {recentInspections.map((inspection) => {
                       // Determine priority from risk score
                       const riskScore = inspection.riskScore;
-                      let priorityBadge = null;
+                      let priorityBadge: React.ReactNode = null;
                       if (riskScore) {
                         const priority = riskScore >= 15 ? 'P1' : riskScore >= 10 ? 'P2' : riskScore >= 5 ? 'P3' : 'P4';
                         const config = PRIORITIES[priority];
