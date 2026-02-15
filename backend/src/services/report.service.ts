@@ -1,4 +1,3 @@
-import puppeteer from 'puppeteer';
 import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { nanoid } from 'nanoid';
@@ -37,93 +36,10 @@ export const reportService = {
 
   /**
    * Generate a PDF report for an inspection
+   * NOTE: PDF generation disabled for Railway deployment (requires Puppeteer/Chrome)
    */
   async generateReport(inspectionId: string): Promise<GeneratedReport> {
-    const inspection = await prisma.inspection.findUnique({
-      where: { id: inspectionId },
-      include: {
-        asset: true,
-        engineer: true,
-        media: true,
-      },
-    });
-
-    if (!inspection) {
-      throw new Error('Inspection not found');
-    }
-
-    // Get signed URLs for media
-    const mediaWithUrls = await Promise.all(
-      inspection.media.map(async (m) => {
-        const { url } = await mediaService.getDownloadUrl(m.id);
-        const thumbnail = await mediaService.getThumbnailUrl(m.id);
-        return { ...m, url, thumbnailUrl: thumbnail?.url };
-      })
-    );
-
-    // Get branding from settings
-    const brandingSettings = await prisma.systemSetting.findUnique({
-      where: { key: 'branding' },
-    });
-    const branding = (brandingSettings?.value as Record<string, string>) || config.branding;
-
-    // Generate HTML
-    const html = generateReportHtml(inspection, mediaWithUrls, branding);
-
-    // Generate PDF with Puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
-
-    try {
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },
-        printBackground: true,
-      });
-
-      // Upload to S3
-      const reportId = nanoid();
-      const pdfKey = `reports/${inspectionId}/${reportId}.pdf`;
-
-      await s3Client.send(
-        new PutObjectCommand({
-          Bucket: config.aws.s3Bucket,
-          Key: pdfKey,
-          Body: pdfBuffer,
-          ContentType: 'application/pdf',
-        })
-      );
-
-      const pdfUrl = `https://${config.aws.s3Bucket}.s3.${config.aws.region}.amazonaws.com/${pdfKey}`;
-
-      // Create report record
-      const report = await prisma.generatedReport.create({
-        data: {
-          id: reportId,
-          inspectionId,
-          pdfKey,
-          pdfUrl,
-          generatedBy: 'system',
-        },
-      });
-
-      await auditService.log({
-        action: AuditAction.PDF_GENERATED,
-        entityType: 'report',
-        entityId: report.id,
-        description: `Generated PDF report for inspection ${inspection.asset.assetId}`,
-        metadata: { inspectionId, assetId: inspection.asset.assetId },
-      });
-
-      return report;
-    } finally {
-      await browser.close();
-    }
+    throw new Error('PDF generation is not available in this deployment. Please use the web interface to view inspection details.');
   },
 
   /**
