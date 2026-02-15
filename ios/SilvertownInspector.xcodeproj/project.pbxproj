@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -29,7 +29,7 @@
 		8ACBE5752EE411B4AA2EB9ED /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A082E74F2B4E9296722BE6CC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A1237699FCFDCD36665F6B4A /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
-		A1530EEFF3C7B7C5E6768F6D /* SilvertownInspector.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SilvertownInspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1530EEFF3C7B7C5E6768F6D /* SilvertownInspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SilvertownInspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9DDE887126A2270B8BBD583 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B169F24CA13D0292B278BFDB /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		BEBB69C53B6E0E29EFC5ED1B /* SilvertownInspectorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SilvertownInspectorApp.swift; sourceTree = "<group>"; };
@@ -143,12 +143,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1500;
-				TargetAttributes = {
-					3330AF7B5A3244029A5C5AC6 = {
-						DevelopmentTeam = "";
-						ProvisioningStyle = Automatic;
-					};
-				};
 			};
 			buildConfigurationList = E0550F311DE1D5DF05B07392 /* Build configuration list for PBXProject "SilvertownInspector" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -160,7 +154,6 @@
 			);
 			mainGroup = F8462EEDE3E9EA568F686C5E;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -206,9 +199,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SilvertownInspector/SilvertownInspector.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DGVM6CS9S7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SilvertownInspector/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is needed to take photos during inspections";
@@ -223,6 +216,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "uk.co.infratec.silvertown-inspector";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -234,9 +228,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SilvertownInspector/SilvertownInspector.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DGVM6CS9S7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SilvertownInspector/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is needed to take photos during inspections";
@@ -251,6 +245,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "uk.co.infratec.silvertown-inspector";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";

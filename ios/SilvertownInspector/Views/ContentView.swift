@@ -33,25 +33,25 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             HomeView()
                 .tabItem {
-                    Label("Home", systemImage: "house")
+                    Label("Home", systemImage: "house.fill")
                 }
                 .tag(0)
 
             AssetListView()
                 .tabItem {
-                    Label("Assets", systemImage: "cube.box")
+                    Label("Assets", systemImage: "cube.box.fill")
                 }
                 .tag(1)
 
             InspectionsListView()
                 .tabItem {
-                    Label("Inspections", systemImage: "clipboard")
+                    Label("Inspections", systemImage: "clipboard.fill")
                 }
                 .tag(2)
 
             ProfileView()
                 .tabItem {
-                    Label("Profile", systemImage: "person")
+                    Label("Profile", systemImage: "person.fill")
                 }
                 .tag(3)
         }
@@ -100,14 +100,18 @@ struct SyncStatusBar: View {
                 ProgressView()
                     .scaleEffect(0.8)
                 Text("Syncing...")
+                    .font(.caption)
+                    .fontWeight(.medium)
             } else if !syncManager.isOnline {
                 Image(systemName: "wifi.slash")
                     .foregroundColor(.orange)
                 Text("Offline - changes saved locally")
+                    .font(.caption)
             } else if syncManager.pendingInspections > 0 {
                 Image(systemName: "arrow.triangle.2.circlepath")
-                    .foregroundColor(.blue)
+                    .foregroundColor(.brandPrimary)
                 Text("\(syncManager.pendingInspections) pending sync")
+                    .font(.caption)
             }
 
             Spacer()
@@ -117,9 +121,8 @@ struct SyncStatusBar: View {
                     .foregroundColor(.red)
             }
         }
-        .font(.caption)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
         .background(.ultraThinMaterial)
     }
 }
@@ -132,9 +135,9 @@ struct SyncToast: View {
 
     private var backgroundColor: Color {
         switch type {
-        case .success: return .green
-        case .warning: return .orange
-        case .error: return .red
+        case .success: return .grade1Color
+        case .warning: return .grade3Color
+        case .error: return .grade5Color
         }
     }
 
@@ -147,18 +150,18 @@ struct SyncToast: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             Image(systemName: icon)
             Text(message)
                 .fontWeight(.medium)
         }
         .font(.subheadline)
         .foregroundColor(.white)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
         .background(backgroundColor)
-        .cornerRadius(20)
-        .shadow(radius: 4)
+        .cornerRadius(25)
+        .shadow(color: backgroundColor.opacity(0.3), radius: 8, y: 4)
         .padding(.top, 8)
     }
 }
@@ -176,96 +179,194 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Welcome
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Welcome, \(authManager.currentUser?.displayName.components(separatedBy: " ").first ?? "Engineer")")
-                            .font(.title2)
-                            .fontWeight(.bold)
-
-                        HStack {
-                            Circle()
-                                .fill(syncManager.isOnline ? Color.green : Color.orange)
-                                .frame(width: 8, height: 8)
-                            Text(syncManager.isOnline ? "Online" : "Offline")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .padding()
+                VStack(alignment: .leading, spacing: 24) {
+                    // Welcome Header
+                    welcomeHeader
+                        .padding(.horizontal)
 
                     // Quick Stats
-                    HStack(spacing: 12) {
-                        StatCard(title: "Today", value: "\(todayInspectionCount)", subtitle: "inspections")
-                        StatCard(title: "Pending", value: "\(syncManager.pendingInspections)", subtitle: "sync")
-                    }
-                    .padding(.horizontal)
+                    statsSection
+                        .padding(.horizontal)
 
                     // Quick Actions
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Quick Actions")
-                            .font(.headline)
-                            .padding(.horizontal)
+                    quickActionsSection
 
-                        VStack(spacing: 8) {
-                            Button {
-                                showAssetPicker = true
-                            } label: {
-                                QuickActionRow(icon: "plus.circle", title: "New Inspection", color: .brandPrimary)
-                            }
-                            .buttonStyle(.plain)
-
-                            NavigationLink {
-                                InspectionsListView()
-                            } label: {
-                                QuickActionRow(icon: "clipboard", title: "My Inspections", color: .brandPrimary)
-                            }
-                            .buttonStyle(.plain)
-
-                            NavigationLink {
-                                AssetListView()
-                            } label: {
-                                QuickActionRow(icon: "cube", title: "Asset Search", color: .brandPrimary)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        .padding(.horizontal)
-                    }
-
-                    // Recent
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Recent")
-                            .font(.headline)
-                            .padding(.horizontal)
-
-                        if recentInspections.isEmpty {
-                            Text("No recent inspections")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal)
-                        } else {
-                            VStack(spacing: 8) {
-                                ForEach(recentInspections.prefix(5)) { inspection in
-                                    NavigationLink {
-                                        InspectionDetailView(inspection: inspection)
-                                    } label: {
-                                        RecentInspectionRow(
-                                            assetId: inspection.asset?.assetId ?? inspection.assetId,
-                                            grade: inspection.conditionGrade,
-                                            date: formatDate(inspection.dateOfInspection)
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                    }
+                    // Recent Inspections
+                    recentSection
                 }
+                .padding(.vertical)
             }
+            .background(Color.brandLight.opacity(0.5))
             .navigationTitle("Silvertown Tunnel")
             .sheet(isPresented: $showAssetPicker) {
                 AssetPickerView()
+            }
+        }
+    }
+
+    // MARK: - Welcome Header
+
+    private var welcomeHeader: some View {
+        HStack(spacing: 16) {
+            // Avatar
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.brandPrimary, .brandPrimaryDark],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 56, height: 56)
+
+                Text(String(authManager.currentUser?.displayName.prefix(1) ?? "?"))
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            .shadow(color: .brandPrimary.opacity(0.3), radius: 8, y: 4)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Welcome back,")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                Text(authManager.currentUser?.displayName.components(separatedBy: " ").first ?? "Engineer")
+                    .font(.title2)
+                    .fontWeight(.bold)
+
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(syncManager.isOnline ? Color.grade1Color : Color.grade3Color)
+                        .frame(width: 8, height: 8)
+                    Text(syncManager.isOnline ? "Online" : "Offline")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            Spacer()
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
+    }
+
+    // MARK: - Stats Section
+
+    private var statsSection: some View {
+        HStack(spacing: 12) {
+            StatCard(
+                title: "Today",
+                value: "\(todayInspectionCount)",
+                subtitle: "inspections",
+                icon: "checkmark.circle.fill",
+                accentColor: .brandPrimary
+            )
+
+            StatCard(
+                title: "Pending",
+                value: "\(syncManager.pendingInspections)",
+                subtitle: "to sync",
+                icon: "arrow.triangle.2.circlepath",
+                accentColor: syncManager.pendingInspections > 0 ? .grade3Color : .grade1Color
+            )
+        }
+    }
+
+    // MARK: - Quick Actions Section
+
+    private var quickActionsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Quick Actions")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .padding(.horizontal)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    QuickActionCard(
+                        icon: "plus.circle.fill",
+                        title: "New\nInspection",
+                        color: .brandPrimary
+                    ) {
+                        showAssetPicker = true
+                    }
+
+                    NavigationLink {
+                        InspectionsListView()
+                    } label: {
+                        QuickActionCardContent(
+                            icon: "clipboard.fill",
+                            title: "My\nInspections",
+                            color: .brandSecondary
+                        )
+                    }
+
+                    NavigationLink {
+                        AssetListView()
+                    } label: {
+                        QuickActionCardContent(
+                            icon: "cube.fill",
+                            title: "Browse\nAssets",
+                            color: .brandPrimaryLight
+                        )
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+
+    // MARK: - Recent Section
+
+    private var recentSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Recent Inspections")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+
+                Spacer()
+
+                if !recentInspections.isEmpty {
+                    NavigationLink {
+                        InspectionsListView()
+                    } label: {
+                        Text("See All")
+                            .font(.subheadline)
+                            .foregroundColor(.brandPrimary)
+                    }
+                }
+            }
+            .padding(.horizontal)
+
+            if recentInspections.isEmpty {
+                EmptyStateCard(
+                    icon: "clipboard",
+                    title: "No inspections yet",
+                    subtitle: "Your recent inspections will appear here"
+                )
+                .padding(.horizontal)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(recentInspections.prefix(5)) { inspection in
+                        NavigationLink {
+                            InspectionDetailView(inspection: inspection)
+                        } label: {
+                            RecentInspectionRow(
+                                assetId: inspection.asset?.assetId ?? inspection.assetId,
+                                grade: inspection.conditionGrade,
+                                date: formatDate(inspection.dateOfInspection),
+                                syncStatus: inspection.syncStatus
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
             }
         }
     }
@@ -355,8 +456,8 @@ struct AssetPickerView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
+                            .background(selectedZone.isEmpty ? Color(.systemGray6) : Color.brandPrimary.opacity(0.1))
+                            .cornerRadius(10)
                         }
 
                         // Asset Type Picker
@@ -385,8 +486,8 @@ struct AssetPickerView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
+                            .background(selectedAssetType.isEmpty ? Color(.systemGray6) : Color.brandPrimary.opacity(0.1))
+                            .cornerRadius(10)
                         }
                     }
 
@@ -410,7 +511,7 @@ struct AssetPickerView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
                     .background(Color(.systemGray6))
-                    .cornerRadius(8)
+                    .cornerRadius(10)
 
                     // Results count and clear filters
                     HStack {
@@ -470,37 +571,7 @@ struct AssetPickerView: View {
                         Button {
                             selectAsset(asset)
                         } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    Text(asset.assetId)
-                                        .font(.headline)
-                                        .fontDesign(.monospaced)
-                                        .foregroundColor(.primary)
-
-                                    Spacer()
-
-                                    // Show indicator if recently inspected
-                                    if asset.lastInspectionDate != nil {
-                                        if let dateStr = asset.lastInspectionDate,
-                                           let date = ISO8601DateFormatter().date(from: dateStr),
-                                           Date().timeIntervalSince(date) < 86400 {
-                                            Image(systemName: "clock.badge.checkmark")
-                                                .foregroundColor(.orange)
-                                                .font(.caption)
-                                        }
-                                    }
-                                }
-                                Text(asset.title ?? asset.level3)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                HStack(spacing: 8) {
-                                    Label(asset.zone, systemImage: "mappin")
-                                    Label(asset.level2, systemImage: "cube")
-                                }
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            }
-                            .padding(.vertical, 4)
+                            AssetPickerRow(asset: asset)
                         }
                     }
                     .listStyle(.plain)
@@ -577,7 +648,7 @@ struct AssetPickerView: View {
                     filterOptions = (options.zones, options.level2Values)
                 }
             } catch {
-                print("❌ Failed to load filter options: \(error)")
+                print("Failed to load filter options: \(error)")
             }
         }
     }
@@ -600,13 +671,58 @@ struct AssetPickerView: View {
                     isLoading = false
                 }
             } catch {
-                print("❌ Failed to load assets: \(error)")
+                print("Failed to load assets: \(error)")
                 await MainActor.run {
                     errorMessage = "Failed to load assets: \(error.localizedDescription)"
                     isLoading = false
                 }
             }
         }
+    }
+}
+
+// MARK: - Asset Picker Row
+
+struct AssetPickerRow: View {
+    let asset: AssetResponse
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(asset.assetId)
+                    .font(.headline)
+                    .fontDesign(.monospaced)
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                // Show indicator if recently inspected
+                if asset.lastInspectionDate != nil {
+                    if let dateStr = asset.lastInspectionDate,
+                       let date = ISO8601DateFormatter().date(from: dateStr),
+                       Date().timeIntervalSince(date) < 86400 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock.badge.checkmark")
+                            Text("Recent")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.grade3Color)
+                    }
+                }
+            }
+
+            Text(asset.title ?? asset.level3)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+
+            HStack(spacing: 12) {
+                Label(asset.zone, systemImage: "mappin.circle.fill")
+                Label(asset.level2, systemImage: "cube.fill")
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 8)
     }
 }
 
@@ -623,7 +739,6 @@ struct InspectionFormView: View {
     init(asset: AssetResponse, onComplete: @escaping () -> Void) {
         self.asset = asset
         self.onComplete = onComplete
-        print("📋 InspectionFormView init for asset: \(asset.assetId)")
     }
     @State private var comments = ""
     @State private var defectSeverity: Int?
@@ -654,13 +769,28 @@ struct InspectionFormView: View {
     var body: some View {
         Form {
             Section("Asset") {
-                Text("Asset ID: \(asset.assetId)")
-                Text("Type: \(asset.level3)")
-                Text("Zone: \(asset.zone)")
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(asset.assetId)
+                            .font(.headline)
+                            .fontDesign(.monospaced)
+                        Text(asset.level3)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Text(asset.zone)
+                        .font(.caption)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.brandPrimary.opacity(0.1))
+                        .foregroundColor(.brandPrimary)
+                        .cornerRadius(8)
+                }
             }
 
             Section {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 16) {
                     Text("Condition Grade")
                         .font(.headline)
 
@@ -672,23 +802,26 @@ struct InspectionFormView: View {
                                     defectSeverity = nil
                                 }
                             } label: {
-                                VStack(spacing: 4) {
-                                    Circle()
-                                        .fill(Color(hex: grade.color))
-                                        .frame(width: 44, height: 44)
-                                        .overlay(
-                                            Text("\(grade.value)")
-                                                .font(.headline)
-                                                .fontWeight(.bold)
-                                                .foregroundColor(.white)
-                                        )
-                                        .overlay(
-                                            Circle()
-                                                .stroke(selectedGrade == grade ? Color.primary : Color.clear, lineWidth: 3)
-                                        )
+                                VStack(spacing: 6) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color(hex: grade.color))
+                                            .frame(width: 48, height: 48)
+
+                                        Text("\(grade.value)")
+                                            .font(.title3)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.white)
+                                    }
+                                    .overlay(
+                                        Circle()
+                                            .stroke(selectedGrade == grade ? Color.primary : Color.clear, lineWidth: 3)
+                                    )
+                                    .shadow(color: selectedGrade == grade ? Color(hex: grade.color).opacity(0.4) : .clear, radius: 6, y: 3)
+
                                     Text(grade.shortLabel)
                                         .font(.caption2)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(selectedGrade == grade ? .primary : .secondary)
                                 }
                             }
                             .buttonStyle(.plain)
@@ -696,17 +829,26 @@ struct InspectionFormView: View {
                     }
 
                     if let grade = selectedGrade {
-                        Text(grade.description)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        HStack(spacing: 8) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color(hex: grade.color))
+                                .frame(width: 4)
+
+                            Text(grade.description)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(12)
+                        .background(Color(hex: grade.color).opacity(0.1))
+                        .cornerRadius(8)
                     }
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, 8)
             }
 
             if hasDefect {
                 Section("Defect Assessment") {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Text("Defect Severity")
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -718,7 +860,7 @@ struct InspectionFormView: View {
                                 } label: {
                                     Circle()
                                         .fill(severityColor(level))
-                                        .frame(width: 36, height: 36)
+                                        .frame(width: 40, height: 40)
                                         .overlay(
                                             Text("\(level)")
                                                 .font(.subheadline)
@@ -729,6 +871,7 @@ struct InspectionFormView: View {
                                             Circle()
                                                 .stroke(defectSeverity == level ? Color.primary : Color.clear, lineWidth: 2)
                                         )
+                                        .shadow(color: defectSeverity == level ? severityColor(level).opacity(0.4) : .clear, radius: 4, y: 2)
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -738,12 +881,16 @@ struct InspectionFormView: View {
                     if let score = riskScore {
                         HStack {
                             Text("Risk Score")
+                                .fontWeight(.medium)
                             Spacer()
                             Text("\(score)")
-                                .font(.title2)
+                                .font(.title)
                                 .fontWeight(.bold)
                                 .foregroundColor(riskScoreColor(score))
                         }
+                        .padding()
+                        .background(riskScoreColor(score).opacity(0.1))
+                        .cornerRadius(12)
                     }
 
                     TextField("Defect Description", text: $defectDescription, axis: .vertical)
@@ -768,8 +915,15 @@ struct InspectionFormView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
+                Button {
                     saveInspection()
+                } label: {
+                    if isSaving {
+                        ProgressView()
+                    } else {
+                        Text("Save")
+                            .fontWeight(.semibold)
+                    }
                 }
                 .disabled(!canSave || isSaving)
             }
@@ -783,20 +937,20 @@ struct InspectionFormView: View {
 
     private func severityColor(_ level: Int) -> Color {
         switch level {
-        case 1: return .green
-        case 2: return Color(red: 0.52, green: 0.8, blue: 0.09)
-        case 3: return .orange
-        case 4: return Color(red: 0.98, green: 0.45, blue: 0.09)
-        case 5: return .red
+        case 1: return .grade1Color
+        case 2: return .grade2Color
+        case 3: return .grade3Color
+        case 4: return .grade4Color
+        case 5: return .grade5Color
         default: return .gray
         }
     }
 
     private func riskScoreColor(_ score: Int) -> Color {
-        if score >= 15 { return .red }
-        if score >= 10 { return .orange }
-        if score >= 5 { return .yellow }
-        return .green
+        if score >= 15 { return .grade5Color }
+        if score >= 10 { return .grade4Color }
+        if score >= 5 { return .grade3Color }
+        return .grade1Color
     }
 
     private func saveInspection() {
@@ -827,14 +981,12 @@ struct InspectionFormView: View {
                     observedIssues: hasDefect && !observedIssues.isEmpty ? observedIssues : nil,
                     recommendedAction: hasDefect && !recommendedAction.isEmpty ? recommendedAction : nil,
                     followUpRequired: hasDefect ? followUpRequired : false,
-                    photos: [] // TODO: Add photo capture support
+                    photos: []
                 )
 
-                print("✅ Inspection saved locally (will sync when online)")
                 onComplete()
 
             } catch {
-                print("❌ Failed to save inspection: \(error)")
                 errorMessage = "Failed to save: \(error.localizedDescription)"
                 showError = true
                 isSaving = false
@@ -884,11 +1036,26 @@ struct InspectionDetailView: View {
     var body: some View {
         List {
             Section("Asset") {
-                LabeledContent("Asset ID", value: inspection.asset?.assetId ?? inspection.assetId)
-                if let title = inspection.asset?.title {
-                    LabeledContent("Title", value: title)
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(inspection.asset?.assetId ?? inspection.assetId)
+                            .font(.headline)
+                            .fontDesign(.monospaced)
+                        if let title = inspection.asset?.title {
+                            Text(title)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    Spacer()
+                    Text(inspection.asset?.zone ?? "-")
+                        .font(.caption)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.brandPrimary.opacity(0.1))
+                        .foregroundColor(.brandPrimary)
+                        .cornerRadius(8)
                 }
-                LabeledContent("Zone", value: inspection.asset?.zone ?? "-")
             }
 
             Section("Inspection") {
@@ -897,9 +1064,15 @@ struct InspectionDetailView: View {
                     Spacer()
                     ConditionGradeBadge(grade: inspection.conditionGrade, size: .small)
                 }
+
                 LabeledContent("Date", value: inspection.dateOfInspection.formatted(date: .abbreviated, time: .shortened))
                 LabeledContent("Inspector", value: inspection.engineerName ?? "-")
-                LabeledContent("Status", value: inspection.syncStatus.rawValue.capitalized)
+
+                HStack {
+                    Text("Status")
+                    Spacer()
+                    SyncStatusBadge(status: inspection.syncStatus)
+                }
             }
 
             if let comments = inspection.comments, !comments.isEmpty {
@@ -914,7 +1087,14 @@ struct InspectionDetailView: View {
                         LabeledContent("Severity", value: "\(severity)")
                     }
                     if let riskScore = inspection.riskScore {
-                        LabeledContent("Risk Score", value: "\(riskScore)")
+                        HStack {
+                            Text("Risk Score")
+                            Spacer()
+                            Text("\(riskScore)")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(riskScoreColor(riskScore))
+                        }
                     }
                     if let description = inspection.defectDescription, !description.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
@@ -942,13 +1122,20 @@ struct InspectionDetailView: View {
                     }
                     if inspection.followUpRequired {
                         Label("Follow-up Required", systemImage: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
+                            .foregroundColor(.grade3Color)
                     }
                 }
             }
         }
         .navigationTitle("Inspection")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func riskScoreColor(_ score: Int) -> Color {
+        if score >= 15 { return .grade5Color }
+        if score >= 10 { return .grade4Color }
+        if score >= 5 { return .grade3Color }
+        return .grade1Color
     }
 }
 
@@ -958,49 +1145,112 @@ struct StatCard: View {
     let title: String
     let value: String
     let subtitle: String
+    var icon: String = "chart.bar.fill"
+    var accentColor: Color = .brandPrimary
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                Image(systemName: icon)
+                    .font(.caption)
+                    .foregroundColor(accentColor.opacity(0.6))
+            }
+
             Text(value)
-                .font(.title)
-                .fontWeight(.bold)
+                .font(.system(size: 32, weight: .bold))
+                .foregroundColor(.primary)
+
             Text(subtitle)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .padding(16)
         .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 4)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(accentColor.opacity(0.1), lineWidth: 1)
+        )
     }
 }
 
-struct QuickActionRow: View {
+struct QuickActionCard: View {
+    let icon: String
+    let title: String
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            QuickActionCardContent(icon: icon, title: title, color: color)
+        }
+    }
+}
+
+struct QuickActionCardContent: View {
     let icon: String
     let title: String
     let color: Color
 
     var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .foregroundColor(color)
-                .frame(width: 32)
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 56, height: 56)
+
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(color)
+            }
 
             Text(title)
+                .font(.caption)
                 .fontWeight(.medium)
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.primary)
         }
-        .padding()
+        .frame(width: 100, height: 120)
         .background(Color(.systemBackground))
-        .cornerRadius(12)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
+    }
+}
+
+struct EmptyStateCard: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 40))
+                .foregroundColor(.secondary.opacity(0.5))
+
+            Text(title)
+                .font(.headline)
+                .foregroundColor(.secondary)
+
+            Text(subtitle)
+                .font(.caption)
+                .foregroundColor(.secondary.opacity(0.8))
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(32)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.04), radius: 8, y: 4)
     }
 }
 
@@ -1008,15 +1258,17 @@ struct RecentInspectionRow: View {
     let assetId: String
     let grade: ConditionGrade
     let date: String
+    var syncStatus: SyncStatus = .synced
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             ConditionGradeBadge(grade: grade, size: .small)
 
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(assetId)
                     .font(.subheadline)
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold)
+                    .fontDesign(.monospaced)
                 Text(date)
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -1024,12 +1276,43 @@ struct RecentInspectionRow: View {
 
             Spacer()
 
+            SyncStatusBadge(status: syncStatus)
+
             Image(systemName: "chevron.right")
+                .font(.caption)
                 .foregroundColor(.secondary)
         }
-        .padding()
+        .padding(14)
         .background(Color(.systemBackground))
         .cornerRadius(12)
+        .shadow(color: .black.opacity(0.04), radius: 6, y: 3)
+    }
+}
+
+struct SyncStatusBadge: View {
+    let status: SyncStatus
+
+    var body: some View {
+        Group {
+            switch status {
+            case .pending:
+                Image(systemName: "clock")
+                    .foregroundColor(.grade3Color)
+            case .syncing:
+                ProgressView()
+                    .scaleEffect(0.7)
+            case .synced:
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.grade1Color)
+            case .failed:
+                Image(systemName: "exclamationmark.circle.fill")
+                    .foregroundColor(.grade5Color)
+            case .conflict:
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.grade3Color)
+            }
+        }
+        .font(.subheadline)
     }
 }
 
@@ -1087,15 +1370,15 @@ struct InspectionsListView: View {
                                 .scaleEffect(0.7)
                         } else if !syncManager.isOnline {
                             Image(systemName: "wifi.slash")
-                                .foregroundColor(.orange)
+                                .foregroundColor(.grade3Color)
                                 .font(.caption)
                         } else if syncManager.pendingInspections > 0 {
                             Image(systemName: "clock")
-                                .foregroundColor(.orange)
+                                .foregroundColor(.grade3Color)
                                 .font(.caption)
                             Text("\(syncManager.pendingInspections)")
                                 .font(.caption)
-                                .foregroundColor(.orange)
+                                .foregroundColor(.grade3Color)
                         }
                     }
                 }
@@ -1120,6 +1403,7 @@ struct InspectionsListView: View {
                         }
                     } label: {
                         Image(systemName: "line.3.horizontal.decrease.circle")
+                            .foregroundColor(.brandPrimary)
                     }
                 }
             }
@@ -1137,6 +1421,7 @@ struct InspectionRowView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(inspection.asset?.assetId ?? inspection.assetId)
                     .font(.headline)
+                    .fontDesign(.monospaced)
                 Text(inspection.dateOfInspection.formatted(date: .abbreviated, time: .shortened))
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -1144,24 +1429,7 @@ struct InspectionRowView: View {
 
             Spacer()
 
-            // Sync status indicator
-            switch inspection.syncStatus {
-            case .pending:
-                Image(systemName: "clock")
-                    .foregroundColor(.orange)
-            case .syncing:
-                ProgressView()
-                    .scaleEffect(0.7)
-            case .synced:
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-            case .failed:
-                Image(systemName: "exclamationmark.circle.fill")
-                    .foregroundColor(.red)
-            case .conflict:
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(.orange)
-            }
+            SyncStatusBadge(status: inspection.syncStatus)
         }
         .padding(.vertical, 4)
     }
@@ -1183,18 +1451,26 @@ struct ProfileView: View {
         NavigationStack {
             List {
                 Section {
-                    HStack {
-                        Circle()
-                            .fill(Color.brandPrimary)
-                            .frame(width: 60, height: 60)
-                            .overlay(
-                                Text(String(authManager.currentUser?.displayName.prefix(1) ?? "?"))
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                            )
+                    HStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.brandPrimary, .brandPrimaryDark],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 70, height: 70)
 
-                        VStack(alignment: .leading) {
+                            Text(String(authManager.currentUser?.displayName.prefix(1) ?? "?"))
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                        }
+                        .shadow(color: .brandPrimary.opacity(0.3), radius: 8, y: 4)
+
+                        VStack(alignment: .leading, spacing: 4) {
                             Text(authManager.currentUser?.displayName ?? "")
                                 .font(.headline)
                             Text(authManager.currentUser?.email ?? "")
@@ -1202,14 +1478,19 @@ struct ProfileView: View {
                                 .foregroundColor(.secondary)
                             Text(authManager.currentUser?.role.rawValue ?? "")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.brandPrimary.opacity(0.1))
+                                .foregroundColor(.brandPrimary)
+                                .cornerRadius(6)
                         }
                     }
+                    .padding(.vertical, 8)
                 }
 
                 Section("App") {
                     NavigationLink(destination: Text("Statistics")) {
-                        Label("My Statistics", systemImage: "chart.bar")
+                        Label("My Statistics", systemImage: "chart.bar.fill")
                     }
                     NavigationLink(destination: Text("Settings")) {
                         Label("Settings", systemImage: "gear")
@@ -1223,8 +1504,11 @@ struct ProfileView: View {
                     Button(action: {
                         Task { await authManager.logout() }
                     }) {
-                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                            .foregroundColor(.red)
+                        HStack {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                            Text("Sign Out")
+                        }
+                        .foregroundColor(.grade5Color)
                     }
                 }
             }

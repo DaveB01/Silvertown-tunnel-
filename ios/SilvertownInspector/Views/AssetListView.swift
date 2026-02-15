@@ -57,6 +57,7 @@ struct AssetListView: View {
                     assetList
                 }
             }
+            .background(Color.brandLight.opacity(0.3))
             .navigationTitle("Assets")
             .searchable(text: $searchText, prompt: "Search by ID or type")
         }
@@ -77,16 +78,18 @@ struct AssetListView: View {
                     }
                 } label: {
                     HStack {
+                        Image(systemName: "mappin.circle.fill")
+                            .foregroundColor(selectedZone != nil ? .brandPrimary : .secondary)
                         Text(selectedZone ?? "All Zones")
                             .font(.subheadline)
                         Image(systemName: "chevron.down")
                             .font(.caption)
                     }
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 10)
                     .background(selectedZone != nil ? Color.brandPrimary.opacity(0.1) : Color(.systemGray6))
                     .foregroundColor(selectedZone != nil ? .brandPrimary : .primary)
-                    .cornerRadius(8)
+                    .cornerRadius(10)
                 }
 
                 // Type picker
@@ -98,28 +101,35 @@ struct AssetListView: View {
                     }
                 } label: {
                     HStack {
+                        Image(systemName: "cube.fill")
+                            .foregroundColor(selectedType != nil ? .brandPrimary : .secondary)
                         Text(selectedType ?? "All Types")
                             .font(.subheadline)
+                            .lineLimit(1)
                         Image(systemName: "chevron.down")
                             .font(.caption)
                     }
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 10)
                     .background(selectedType != nil ? Color.brandPrimary.opacity(0.1) : Color(.systemGray6))
                     .foregroundColor(selectedType != nil ? .brandPrimary : .primary)
-                    .cornerRadius(8)
+                    .cornerRadius(10)
                 }
 
                 Spacer()
 
                 // Clear button
                 if selectedZone != nil || selectedType != nil {
-                    Button("Clear") {
-                        selectedZone = nil
-                        selectedType = nil
+                    Button {
+                        withAnimation {
+                            selectedZone = nil
+                            selectedType = nil
+                        }
+                    } label: {
+                        Text("Clear")
+                            .font(.subheadline)
+                            .foregroundColor(.brandPrimary)
                     }
-                    .font(.subheadline)
-                    .foregroundColor(.brandPrimary)
                 }
             }
             .padding(.horizontal)
@@ -130,12 +140,13 @@ struct AssetListView: View {
             HStack {
                 Text("\(filteredAssets.count) assets")
                     .font(.caption)
+                    .fontWeight(.medium)
                     .foregroundColor(.secondary)
                 Spacer()
             }
             .padding(.horizontal)
-            .padding(.vertical, 4)
-            .background(Color(.systemGray6))
+            .padding(.vertical, 6)
+            .background(Color(.systemGray6).opacity(0.5))
         }
     }
 
@@ -153,32 +164,53 @@ struct AssetListView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "cube")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary)
+        VStack(spacing: 20) {
+            ZStack {
+                Circle()
+                    .fill(Color.brandPrimary.opacity(0.1))
+                    .frame(width: 100, height: 100)
 
-            Text("No Assets Found")
-                .font(.headline)
+                Image(systemName: "cube")
+                    .font(.system(size: 40))
+                    .foregroundColor(.brandPrimary.opacity(0.6))
+            }
 
-            if selectedZone != nil || selectedType != nil || !searchText.isEmpty {
-                Text("Try adjusting your filters")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+            VStack(spacing: 8) {
+                Text("No Assets Found")
+                    .font(.headline)
+                    .fontWeight(.semibold)
 
-                Button("Clear Filters") {
-                    selectedZone = nil
-                    selectedType = nil
-                    searchText = ""
+                if selectedZone != nil || selectedType != nil || !searchText.isEmpty {
+                    Text("Try adjusting your filters or search term")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+
+                    Button {
+                        withAnimation {
+                            selectedZone = nil
+                            selectedType = nil
+                            searchText = ""
+                        }
+                    } label: {
+                        Text("Clear Filters")
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(Color.brandPrimary)
+                            .cornerRadius(12)
+                    }
+                    .padding(.top, 8)
+                } else {
+                    Text("Pull down to sync assets from server")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
-                .buttonStyle(.borderedProminent)
-            } else {
-                Text("Pull down to sync assets from server")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
     }
 }
 
@@ -188,27 +220,28 @@ struct AssetRow: View {
     let asset: Asset
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             // Condition indicator
             if let grade = asset.lastConditionGrade {
                 ConditionGradeBadge(grade: grade, size: .small)
             } else {
-                Circle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 32, height: 32)
-                    .overlay(
-                        Text("?")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.gray)
-                    )
+                ZStack {
+                    Circle()
+                        .fill(Color.gray.opacity(0.15))
+                        .frame(width: 32, height: 32)
+
+                    Text("?")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.gray)
+                }
             }
 
             // Info
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(asset.assetId)
                     .font(.subheadline)
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold)
                     .fontDesign(.monospaced)
 
                 Text(asset.level3)
@@ -221,31 +254,46 @@ struct AssetRow: View {
                             .font(.caption2)
                         Text("Overdue")
                             .font(.caption2)
+                            .fontWeight(.medium)
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(.grade5Color)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.grade5Color.opacity(0.1))
+                    .cornerRadius(4)
                 } else if asset.isDueSoon {
                     HStack(spacing: 4) {
                         Image(systemName: "clock")
                             .font(.caption2)
                         Text("Due soon")
                             .font(.caption2)
+                            .fontWeight(.medium)
                     }
-                    .foregroundColor(.orange)
+                    .foregroundColor(.grade3Color)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.grade3Color.opacity(0.1))
+                    .cornerRadius(4)
                 }
             }
 
             Spacer()
 
-            // Zone
+            // Zone badge
             Text(asset.zone)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .fontWeight(.medium)
+                .foregroundColor(.brandPrimary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.brandPrimary.opacity(0.1))
+                .cornerRadius(6)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 }
 
-// MARK: - Asset Detail View (Placeholder)
+// MARK: - Asset Detail View
 
 struct AssetDetailView: View {
     @Environment(\.modelContext) private var modelContext
@@ -255,45 +303,128 @@ struct AssetDetailView: View {
     var body: some View {
         List {
             // Asset info section
-            Section("Asset Information") {
-                LabeledContent("Asset ID", value: asset.assetId)
-                LabeledContent("Type", value: asset.level3)
-                LabeledContent("Category", value: asset.level2)
-                LabeledContent("Zone", value: asset.zone)
-                if let region = asset.region {
-                    LabeledContent("Region", value: region)
+            Section {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Header with asset ID
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Asset ID")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(asset.assetId)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .fontDesign(.monospaced)
+                        }
+
+                        Spacer()
+
+                        // Zone badge
+                        Text(asset.zone)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.brandPrimary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.brandPrimary.opacity(0.1))
+                            .cornerRadius(8)
+                    }
+
+                    Divider()
+
+                    // Asset details
+                    VStack(spacing: 12) {
+                        DetailRow(label: "Type", value: asset.level3, icon: "cube.fill")
+                        DetailRow(label: "Category", value: asset.level2, icon: "folder.fill")
+                        if let region = asset.region {
+                            DetailRow(label: "Region", value: region, icon: "map.fill")
+                        }
+                        if let space = asset.space {
+                            DetailRow(label: "Space", value: space, icon: "building.2.fill")
+                        }
+                    }
                 }
-                if let space = asset.space {
-                    LabeledContent("Space", value: space)
-                }
+                .padding(.vertical, 8)
+            } header: {
+                Text("Asset Information")
             }
 
             // Inspection status section
-            Section("Inspection Status") {
-                if let date = asset.lastInspectionDate {
-                    LabeledContent("Last Inspected", value: date.formatted(date: .abbreviated, time: .omitted))
-                } else {
-                    LabeledContent("Last Inspected", value: "Never")
-                }
+            Section {
+                VStack(spacing: 16) {
+                    // Last grade with visual indicator
+                    if let grade = asset.lastConditionGrade {
+                        HStack(spacing: 16) {
+                            ConditionGradeBadge(grade: grade, size: .medium)
 
-                if let grade = asset.lastConditionGrade {
-                    HStack {
-                        Text("Last Grade")
-                        Spacer()
-                        ConditionGradeBadge(grade: grade, size: .small)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Current Condition")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text(grade.label)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color(hex: grade.color).opacity(0.1))
+                        .cornerRadius(12)
+                    }
+
+                    // Stats grid
+                    HStack(spacing: 12) {
+                        InspectionStatBox(
+                            title: "Last Inspected",
+                            value: asset.lastInspectionDate?.formatted(date: .abbreviated, time: .omitted) ?? "Never",
+                            icon: "calendar"
+                        )
+
+                        InspectionStatBox(
+                            title: "Total",
+                            value: "\(asset.inspectionCount)",
+                            icon: "clipboard"
+                        )
+                    }
+
+                    // Next due warning
+                    if let due = asset.nextInspectionDue {
+                        HStack(spacing: 12) {
+                            Image(systemName: asset.isOverdue ? "exclamationmark.triangle.fill" : "clock")
+                                .foregroundColor(asset.isOverdue ? .grade5Color : (asset.isDueSoon ? .grade3Color : .secondary))
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Next Inspection Due")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text(due.formatted(date: .abbreviated, time: .omitted))
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(asset.isOverdue ? .grade5Color : (asset.isDueSoon ? .grade3Color : .primary))
+                            }
+
+                            Spacer()
+
+                            if asset.isOverdue {
+                                Text("OVERDUE")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.grade5Color)
+                                    .cornerRadius(4)
+                            }
+                        }
+                        .padding()
+                        .background((asset.isOverdue ? Color.grade5Color : (asset.isDueSoon ? Color.grade3Color : Color.gray)).opacity(0.1))
+                        .cornerRadius(12)
                     }
                 }
-
-                if let due = asset.nextInspectionDue {
-                    HStack {
-                        Text("Next Due")
-                        Spacer()
-                        Text(due.formatted(date: .abbreviated, time: .omitted))
-                            .foregroundColor(asset.isOverdue ? .red : (asset.isDueSoon ? .orange : .secondary))
-                    }
-                }
-
-                LabeledContent("Total Inspections", value: "\(asset.inspectionCount)")
+                .padding(.vertical, 8)
+            } header: {
+                Text("Inspection Status")
             }
 
             // Action section
@@ -303,8 +434,16 @@ struct AssetDetailView: View {
                 } label: {
                     HStack {
                         Image(systemName: "plus.circle.fill")
+                            .font(.title3)
                         Text("New Inspection")
+                            .fontWeight(.semibold)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
+                    .foregroundColor(.brandPrimary)
+                    .padding(.vertical, 4)
                 }
             }
         }
@@ -321,6 +460,59 @@ struct AssetDetailView: View {
             }
             .environment(\.modelContext, modelContext)
         }
+    }
+}
+
+// MARK: - Detail Row
+
+struct DetailRow: View {
+    let label: String
+    let value: String
+    var icon: String = "info.circle.fill"
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundColor(.brandPrimary.opacity(0.6))
+                .frame(width: 20)
+
+            Text(label)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+
+            Spacer()
+
+            Text(value)
+                .font(.subheadline)
+                .fontWeight(.medium)
+        }
+    }
+}
+
+// MARK: - Inspection Stat Box
+
+struct InspectionStatBox: View {
+    let title: String
+    let value: String
+    var icon: String = "chart.bar.fill"
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Image(systemName: icon)
+                .foregroundColor(.brandPrimary.opacity(0.6))
+
+            Text(value)
+                .font(.headline)
+                .fontWeight(.bold)
+
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color(.systemGray6).opacity(0.5))
+        .cornerRadius(12)
     }
 }
 

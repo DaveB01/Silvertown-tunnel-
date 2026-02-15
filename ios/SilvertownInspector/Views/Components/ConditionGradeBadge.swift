@@ -132,8 +132,54 @@ extension Color {
         )
     }
 
+    // Brand Colors - matching web UI
     static let brandPrimary = Color(hex: "#003366")
+    static let brandPrimaryDark = Color(hex: "#002244")
+    static let brandPrimaryLight = Color(hex: "#004488")
     static let brandSecondary = Color(hex: "#FF6600")
+    static let brandSecondaryDark = Color(hex: "#E55A00")
+    static let brandLight = Color(hex: "#F0F4F8")
+
+    // Grade Colors - matching web UI
+    static let grade1Color = Color(hex: "#10B981")  // Emerald
+    static let grade2Color = Color(hex: "#22C55E")  // Green
+    static let grade3Color = Color(hex: "#F59E0B")  // Amber
+    static let grade4Color = Color(hex: "#F97316")  // Orange
+    static let grade5Color = Color(hex: "#EF4444")  // Red
+
+    // Premium gradients
+    static var brandGradient: LinearGradient {
+        LinearGradient(
+            colors: [brandPrimary, brandPrimaryDark],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    static var premiumCardBackground: Color {
+        Color(.systemBackground)
+    }
+}
+
+// MARK: - Premium Shadow Modifier
+
+struct PremiumCardStyle: ViewModifier {
+    var cornerRadius: CGFloat = 16
+    var shadowRadius: CGFloat = 8
+
+    func body(content: Content) -> some View {
+        content
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .shadow(color: Color.black.opacity(0.08), radius: shadowRadius, x: 0, y: 4)
+            .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
+    }
+}
+
+extension View {
+    func premiumCard(cornerRadius: CGFloat = 16, shadowRadius: CGFloat = 8) -> some View {
+        modifier(PremiumCardStyle(cornerRadius: cornerRadius, shadowRadius: shadowRadius))
+    }
 }
 
 #Preview {
