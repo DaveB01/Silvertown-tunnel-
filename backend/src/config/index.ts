@@ -22,7 +22,7 @@ export const config = {
   port: parseInt(optionalEnv('PORT', '3000'), 10),
   apiUrl: optionalEnv('API_URL', 'http://localhost:3000'),
   webUrl: optionalEnv('WEB_URL', 'http://localhost:3001'),
-  corsOrigins: optionalEnv('CORS_ORIGINS', 'http://localhost:3001').split(','),
+  corsOrigins: optionalEnv('CORS_ORIGINS', 'http://localhost:3001,https://silvertown-tunnel-zpzj.vercel.app').split(','),
   logLevel: optionalEnv('LOG_LEVEL', 'info'),
 
   // Database
