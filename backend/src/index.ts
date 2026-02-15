@@ -71,12 +71,18 @@ async function bootstrap() {
     },
   });
 
-  // Static file serving for uploaded media (local development)
-  await app.register(fastifyStatic, {
-    root: join(__dirname, '..', 'uploads'),
-    prefix: '/uploads/',
-    decorateReply: false,
-  });
+  // Static file serving for uploaded media (local development only)
+  if (!config.isProd) {
+    try {
+      await app.register(fastifyStatic, {
+        root: join(__dirname, '..', 'uploads'),
+        prefix: '/uploads/',
+        decorateReply: false,
+      });
+    } catch (e) {
+      app.log.warn('Static file serving not available');
+    }
+  }
 
   // Documentation
   await app.register(swagger, {
