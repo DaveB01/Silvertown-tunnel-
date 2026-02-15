@@ -41,7 +41,7 @@ const priorityEnum = z.enum(['P1', 'P2', 'P3', 'P4']);
 
 const listQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(100).default(20),
+  limit: z.coerce.number().min(1).max(5000).default(20),
   assetId: z.string().optional(),
   engineerId: z.string().optional(),
   zone: z.string().optional(),
