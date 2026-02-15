@@ -1,7 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
 
 import { useState, useEffect, useRef } from 'react';
