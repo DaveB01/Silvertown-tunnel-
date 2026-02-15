@@ -1,13 +1,8 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { nanoid } from 'nanoid';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import { mediaService } from '../../services/media.service.js';
 import { prisma } from '../../config/database.js';
-import { MediaType } from '@prisma/client';
-
-const UPLOADS_DIR = join(process.cwd(), 'uploads');
+import { config } from '../../config/index.js';
 
 const uploadRequestSchema = z.object({
   filename: z.string().min(1),
@@ -19,10 +14,11 @@ const confirmUploadSchema = z.object({
   mediaId: z.string().min(1),
   caption: z.string().optional(),
   capturedAt: z.string().datetime().optional(),
+  cloudinaryUrl: z.string().optional(), // URL returned from Cloudinary after upload
 });
 
 export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
-  // POST /inspections/:inspectionId/upload - Direct file upload for local development
+  // POST /inspections/:inspectionId/upload - Direct file upload (uses Cloudinary)
   fastify.post('/inspections/:inspectionId/upload', {
     preHandler: [fastify.authenticate],
   }, async (request, reply) => {
@@ -43,52 +39,36 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const buffer = await data.toBuffer();
-      const mediaId = nanoid();
-      const extension = data.filename.split('.').pop() || 'jpg';
-      const filename = `${mediaId}.${extension}`;
-      const mediaDir = join(UPLOADS_DIR, 'inspections', inspectionId);
-      const filePath = join(mediaDir, filename);
 
-      // Ensure directory exists
-      await mkdir(mediaDir, { recursive: true });
-
-      // Write file
-      await writeFile(filePath, buffer);
-
-      // Determine media type
-      const isVideo = data.mimetype.startsWith('video/');
-      const mediaType = isVideo ? MediaType.VIDEO : MediaType.PHOTO;
-
-      // Create media record
-      const media = await prisma.media.create({
-        data: {
-          id: mediaId,
+      // Check if Cloudinary is configured
+      if (config.cloudinary.cloudName) {
+        // Upload to Cloudinary
+        const media = await mediaService.uploadToCloudinary(
           inspectionId,
-          type: mediaType,
-          filename: data.filename,
-          mimeType: data.mimetype,
-          fileSize: buffer.length,
-          storageKey: `inspections/${inspectionId}/${filename}`,
-          storageUrl: `/uploads/inspections/${inspectionId}/${filename}`,
-          thumbnailKey: `inspections/${inspectionId}/${filename}`,
-          thumbnailUrl: `/uploads/inspections/${inspectionId}/${filename}`,
-          capturedAt: new Date(),
-          uploadStatus: 'complete',
-        },
-      });
+          buffer,
+          data.filename,
+          data.mimetype
+        );
 
-      return {
-        success: true,
-        mediaId: media.id,
-        url: media.storageUrl,
-      };
+        return {
+          success: true,
+          mediaId: media.id,
+          url: media.storageUrl,
+          thumbnailUrl: media.thumbnailUrl,
+        };
+      } else {
+        // Fallback: Return error if no storage configured
+        return reply.code(500).send({
+          error: 'No storage provider configured. Please set up Cloudinary.'
+        });
+      }
     } catch (error) {
       fastify.log.error('Upload failed:', error);
       return reply.code(500).send({ error: 'Upload failed' });
     }
   });
 
-  // POST /inspections/:inspectionId/media/upload-url
+  // POST /inspections/:inspectionId/upload-url - Get pre-signed URL for client-side upload
   fastify.post('/inspections/:inspectionId/upload-url', {
     preHandler: [fastify.authenticate],
   }, async (request, reply) => {
@@ -111,7 +91,7 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 
-  // POST /inspections/:inspectionId/media/confirm
+  // POST /inspections/:inspectionId/confirm - Confirm upload completed
   fastify.post('/inspections/:inspectionId/confirm', {
     preHandler: [fastify.authenticate],
   }, async (request, reply) => {
@@ -121,7 +101,8 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
       const media = await mediaService.confirmUpload(
         body.mediaId,
         body.caption,
-        body.capturedAt ? new Date(body.capturedAt) : undefined
+        body.capturedAt ? new Date(body.capturedAt) : undefined,
+        body.cloudinaryUrl
       );
       return media;
     } catch (error) {
@@ -132,7 +113,7 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 
-  // GET /media/:mediaId/download
+  // GET /media/:mediaId/download - Get download URL
   fastify.get('/:mediaId/download', {
     preHandler: [fastify.authenticate],
   }, async (request, reply) => {
@@ -146,6 +127,21 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.code(404).send({ error: 'Media not found' });
       }
       throw error;
+    }
+  });
+
+  // GET /inspections/:inspectionId/media - Get all media for an inspection
+  fastify.get('/inspections/:inspectionId', {
+    preHandler: [fastify.authenticate],
+  }, async (request, reply) => {
+    const { inspectionId } = request.params as { inspectionId: string };
+
+    try {
+      const media = await mediaService.getInspectionMediaWithUrls(inspectionId);
+      return { data: media };
+    } catch (error) {
+      fastify.log.error('Failed to get inspection media:', error);
+      return reply.code(500).send({ error: 'Failed to get media' });
     }
   });
 
