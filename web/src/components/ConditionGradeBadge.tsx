@@ -110,7 +110,7 @@ export function ConditionGradeSelector({
               )}
               style={{
                 backgroundColor: isSelected ? gradeInfo.color : undefined,
-                ringColor: isSelected ? gradeInfo.color : undefined,
+                outlineColor: isSelected ? gradeInfo.color : undefined,
               }}
             >
               {gradeInfo.value}
