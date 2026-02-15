@@ -8,6 +8,7 @@ import { nanoid } from 'nanoid';
 import sharp from 'sharp';
 import { prisma } from '../config/database.js';
 import { s3Client } from '../config/s3.js';
+import { cloudinary } from '../config/cloudinary.js';
 import { config } from '../config/index.js';
 import { Media, MediaType } from '@prisma/client';
 import { PresignedUploadResponse, MediaUploadRequest } from '../types/index.js';
@@ -15,9 +16,12 @@ import { PresignedUploadResponse, MediaUploadRequest } from '../types/index.js';
 const THUMBNAIL_WIDTH = 400;
 const THUMBNAIL_HEIGHT = 300;
 
+// Check if Cloudinary is configured
+const useCloudinary = config.mediaProvider === 'cloudinary' && config.cloudinary.cloudName;
+
 export const mediaService = {
   /**
-   * Generate a pre-signed URL for media upload
+   * Generate a pre-signed URL for media upload (S3) or signature for Cloudinary
    */
   async getUploadUrl(
     inspectionId: string,
@@ -44,45 +48,98 @@ export const mediaService = {
     // Generate unique key
     const extension = request.filename.split('.').pop() || 'jpg';
     const mediaId = nanoid();
-    const storageKey = `inspections/${inspectionId}/media/${mediaId}.${extension}`;
 
-    // Create media record (pending upload)
-    const media = await prisma.media.create({
-      data: {
-        id: mediaId,
-        inspectionId,
-        type: mediaType,
-        filename: request.filename,
-        mimeType: request.mimeType,
-        fileSize: request.fileSize,
-        storageKey,
-        storageUrl: `https://${config.aws.s3Bucket}.s3.${config.aws.region}.amazonaws.com/${storageKey}`,
-        capturedAt: new Date(),
-        uploadStatus: 'pending',
-      },
-    });
+    if (useCloudinary) {
+      // Cloudinary upload
+      const folder = `silvertown/inspections/${inspectionId}`;
+      const publicId = `${folder}/${mediaId}`;
 
-    // Generate pre-signed upload URL
-    const command = new PutObjectCommand({
-      Bucket: config.aws.s3Bucket,
-      Key: storageKey,
-      ContentType: request.mimeType,
-      ContentLength: request.fileSize,
-    });
+      // Generate upload signature
+      const timestamp = Math.round(Date.now() / 1000);
+      const signature = cloudinary.utils.api_sign_request(
+        {
+          timestamp,
+          folder,
+          public_id: mediaId,
+        },
+        config.cloudinary.apiSecret
+      );
 
-    const uploadUrl = await getSignedUrl(s3Client, command, {
-      expiresIn: config.media.presignedUrlExpiry,
-    });
+      // Create media record (pending upload)
+      const media = await prisma.media.create({
+        data: {
+          id: mediaId,
+          inspectionId,
+          type: mediaType,
+          filename: request.filename,
+          mimeType: request.mimeType,
+          fileSize: request.fileSize,
+          storageKey: publicId,
+          storageUrl: '', // Will be set after upload
+          capturedAt: new Date(),
+          uploadStatus: 'pending',
+        },
+      });
 
-    const expiresAt = new Date();
-    expiresAt.setSeconds(expiresAt.getSeconds() + config.media.presignedUrlExpiry);
+      const expiresAt = new Date();
+      expiresAt.setSeconds(expiresAt.getSeconds() + config.media.presignedUrlExpiry);
 
-    return {
-      mediaId: media.id,
-      uploadUrl,
-      expiresAt,
-      maxFileSize: maxSize,
-    };
+      return {
+        mediaId: media.id,
+        uploadUrl: `https://api.cloudinary.com/v1_1/${config.cloudinary.cloudName}/${isVideo ? 'video' : 'image'}/upload`,
+        expiresAt,
+        maxFileSize: maxSize,
+        // Cloudinary-specific fields
+        cloudinaryData: {
+          signature,
+          timestamp,
+          apiKey: config.cloudinary.apiKey,
+          folder,
+          publicId: mediaId,
+        },
+      };
+    } else {
+      // S3 upload (existing logic)
+      const storageKey = `inspections/${inspectionId}/media/${mediaId}.${extension}`;
+
+      // Create media record (pending upload)
+      const media = await prisma.media.create({
+        data: {
+          id: mediaId,
+          inspectionId,
+          type: mediaType,
+          filename: request.filename,
+          mimeType: request.mimeType,
+          fileSize: request.fileSize,
+          storageKey,
+          storageUrl: `https://${config.aws.s3Bucket}.s3.${config.aws.region}.amazonaws.com/${storageKey}`,
+          capturedAt: new Date(),
+          uploadStatus: 'pending',
+        },
+      });
+
+      // Generate pre-signed upload URL
+      const command = new PutObjectCommand({
+        Bucket: config.aws.s3Bucket,
+        Key: storageKey,
+        ContentType: request.mimeType,
+        ContentLength: request.fileSize,
+      });
+
+      const uploadUrl = await getSignedUrl(s3Client, command, {
+        expiresIn: config.media.presignedUrlExpiry,
+      });
+
+      const expiresAt = new Date();
+      expiresAt.setSeconds(expiresAt.getSeconds() + config.media.presignedUrlExpiry);
+
+      return {
+        mediaId: media.id,
+        uploadUrl,
+        expiresAt,
+        maxFileSize: maxSize,
+      };
+    }
   },
 
   /**
@@ -91,7 +148,8 @@ export const mediaService = {
   async confirmUpload(
     mediaId: string,
     caption?: string,
-    capturedAt?: Date
+    capturedAt?: Date,
+    cloudinaryUrl?: string
   ): Promise<Media> {
     const media = await prisma.media.findUnique({
       where: { id: mediaId },
@@ -102,9 +160,10 @@ export const mediaService = {
     }
 
     // Update media record
-    const updateData: Partial<Media> = {
+    const updateData: Partial<Media> & { uploadStatus: string } = {
       uploadStatus: 'complete',
     };
+
     if (caption !== undefined) {
       updateData.caption = caption;
     }
@@ -112,8 +171,24 @@ export const mediaService = {
       updateData.capturedAt = capturedAt;
     }
 
-    // Generate thumbnail for photos
-    if (media.type === MediaType.PHOTO) {
+    if (useCloudinary && cloudinaryUrl) {
+      // Cloudinary provides URLs directly
+      updateData.storageUrl = cloudinaryUrl;
+
+      // Generate thumbnail URL using Cloudinary transformations
+      if (media.type === MediaType.PHOTO) {
+        updateData.thumbnailUrl = cloudinaryUrl.replace(
+          '/upload/',
+          `/upload/c_fill,w_${THUMBNAIL_WIDTH},h_${THUMBNAIL_HEIGHT}/`
+        );
+      } else if (media.type === MediaType.VIDEO) {
+        // For videos, Cloudinary can generate a thumbnail from a frame
+        updateData.thumbnailUrl = cloudinaryUrl
+          .replace('/video/upload/', '/video/upload/so_0,c_fill,w_400,h_300/')
+          .replace(/\.[^.]+$/, '.jpg');
+      }
+    } else if (!useCloudinary && media.type === MediaType.PHOTO) {
+      // S3: Generate thumbnail manually
       try {
         const thumbnailKey = media.storageKey.replace(/\.[^.]+$/, '_thumb.jpg');
 
@@ -171,10 +246,15 @@ export const mediaService = {
       throw new Error('Media not found');
     }
 
+    // For Cloudinary, URLs are already public/signed
+    if (useCloudinary || media.storageUrl?.includes('cloudinary')) {
+      const expiresAt = new Date();
+      expiresAt.setSeconds(expiresAt.getSeconds() + config.media.downloadUrlExpiry);
+      return { url: media.storageUrl || '', expiresAt };
+    }
+
     // Use CloudFront if configured, otherwise S3 presigned URL
     if (config.aws.cloudfrontUrl) {
-      // For CloudFront, we'd use signed cookies or signed URLs
-      // Simplified: return CloudFront URL (would need signing in production)
       const url = `${config.aws.cloudfrontUrl}/${media.storageKey}`;
       const expiresAt = new Date();
       expiresAt.setSeconds(expiresAt.getSeconds() + config.media.downloadUrlExpiry);
@@ -204,7 +284,18 @@ export const mediaService = {
       where: { id: mediaId },
     });
 
-    if (!media || !media.thumbnailKey) {
+    if (!media || !media.thumbnailUrl) {
+      return null;
+    }
+
+    // For Cloudinary, thumbnail URLs are already usable
+    if (useCloudinary || media.thumbnailUrl?.includes('cloudinary')) {
+      const expiresAt = new Date();
+      expiresAt.setSeconds(expiresAt.getSeconds() + config.media.downloadUrlExpiry);
+      return { url: media.thumbnailUrl, expiresAt };
+    }
+
+    if (!media.thumbnailKey) {
       return null;
     }
 
@@ -235,25 +326,31 @@ export const mediaService = {
       throw new Error('Media not found');
     }
 
-    // Delete from S3
+    // Delete from storage
     try {
-      await s3Client.send(
-        new DeleteObjectCommand({
-          Bucket: config.aws.s3Bucket,
-          Key: media.storageKey,
-        })
-      );
-
-      if (media.thumbnailKey) {
+      if (useCloudinary || media.storageUrl?.includes('cloudinary')) {
+        // Delete from Cloudinary
+        await cloudinary.uploader.destroy(media.storageKey);
+      } else {
+        // Delete from S3
         await s3Client.send(
           new DeleteObjectCommand({
             Bucket: config.aws.s3Bucket,
-            Key: media.thumbnailKey,
+            Key: media.storageKey,
           })
         );
+
+        if (media.thumbnailKey) {
+          await s3Client.send(
+            new DeleteObjectCommand({
+              Bucket: config.aws.s3Bucket,
+              Key: media.thumbnailKey,
+            })
+          );
+        }
       }
     } catch (error) {
-      console.error('Failed to delete media from S3:', error);
+      console.error('Failed to delete media from storage:', error);
     }
 
     // Delete record
@@ -280,6 +377,15 @@ export const mediaService = {
 
     return Promise.all(
       mediaList.map(async (media) => {
+        // For Cloudinary URLs, use directly
+        if (media.storageUrl?.includes('cloudinary')) {
+          return {
+            ...media,
+            signedUrl: media.storageUrl,
+            signedThumbnailUrl: media.thumbnailUrl || undefined,
+          };
+        }
+
         // For local development (storageUrl starts with /uploads), use the URL directly
         if (media.storageUrl?.startsWith('/uploads')) {
           const baseUrl = 'http://localhost:3000';
@@ -310,5 +416,70 @@ export const mediaService = {
         }
       })
     );
+  },
+
+  /**
+   * Direct upload to Cloudinary (server-side) - for iOS app sync
+   */
+  async uploadToCloudinary(
+    inspectionId: string,
+    fileBuffer: Buffer,
+    filename: string,
+    mimeType: string
+  ): Promise<Media> {
+    if (!useCloudinary) {
+      throw new Error('Cloudinary is not configured');
+    }
+
+    const isVideo = mimeType.startsWith('video/');
+    const mediaType = isVideo ? MediaType.VIDEO : MediaType.PHOTO;
+    const mediaId = nanoid();
+    const folder = `silvertown/inspections/${inspectionId}`;
+
+    // Upload to Cloudinary
+    const uploadResult = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder,
+          public_id: mediaId,
+          resource_type: isVideo ? 'video' : 'image',
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(fileBuffer);
+    });
+
+    // Generate thumbnail URL
+    let thumbnailUrl: string | undefined;
+    if (mediaType === MediaType.PHOTO) {
+      thumbnailUrl = uploadResult.secure_url.replace(
+        '/upload/',
+        `/upload/c_fill,w_${THUMBNAIL_WIDTH},h_${THUMBNAIL_HEIGHT}/`
+      );
+    } else if (mediaType === MediaType.VIDEO) {
+      thumbnailUrl = uploadResult.secure_url
+        .replace('/video/upload/', '/video/upload/so_0,c_fill,w_400,h_300/')
+        .replace(/\.[^.]+$/, '.jpg');
+    }
+
+    // Create media record
+    return prisma.media.create({
+      data: {
+        id: mediaId,
+        inspectionId,
+        type: mediaType,
+        filename,
+        mimeType,
+        fileSize: fileBuffer.length,
+        storageKey: uploadResult.public_id,
+        storageUrl: uploadResult.secure_url,
+        thumbnailUrl,
+        capturedAt: new Date(),
+        uploadStatus: 'complete',
+      },
+    });
   },
 };

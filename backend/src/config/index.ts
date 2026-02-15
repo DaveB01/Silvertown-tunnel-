@@ -45,6 +45,16 @@ export const config = {
     cloudfrontUrl: optionalEnv('CLOUDFRONT_URL', ''),
   },
 
+  // Cloudinary (optional - alternative for media uploads)
+  cloudinary: {
+    cloudName: optionalEnv('CLOUDINARY_CLOUD_NAME', ''),
+    apiKey: optionalEnv('CLOUDINARY_API_KEY', ''),
+    apiSecret: optionalEnv('CLOUDINARY_API_SECRET', ''),
+  },
+
+  // Media storage provider: 'cloudinary' or 's3'
+  mediaProvider: optionalEnv('MEDIA_PROVIDER', 'cloudinary'),
+
   // SendGrid (optional - for email)
   sendgrid: {
     apiKey: optionalEnv('SENDGRID_API_KEY', ''),

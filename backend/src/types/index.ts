@@ -167,6 +167,14 @@ export interface PresignedUploadResponse {
   uploadUrl: string;
   expiresAt: Date;
   maxFileSize: number;
+  // Cloudinary-specific fields (only present when using Cloudinary)
+  cloudinaryData?: {
+    signature: string;
+    timestamp: number;
+    apiKey: string;
+    folder: string;
+    publicId: string;
+  };
 }
 
 // Report types
