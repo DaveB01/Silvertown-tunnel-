@@ -2,6 +2,7 @@
   "name": "@silvertown/api",
   "version": "1.0.0",
   "description": "Silvertown Tunnel Asset Inspection System - Backend API",
+  "type": "commonjs",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
