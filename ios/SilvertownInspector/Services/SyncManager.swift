@@ -611,7 +611,12 @@ extension APIService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        // Add auth header - would need to access token here
+
+        // Add auth header
+        if let token = await AuthManager.shared.accessToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
         request.httpBody = body
 
         let (_, response) = try await URLSession.shared.data(for: request)
