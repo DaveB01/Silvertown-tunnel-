@@ -164,6 +164,30 @@ final class AuthManager {
         guard let user = currentUser else { return false }
         return roles.contains(user.role)
     }
+
+    // MARK: - Token Access
+
+    func getAccessToken() -> String? {
+        return accessToken
+    }
+
+    // MARK: - Force Logout (called when token refresh fails)
+
+    func forceLogout() {
+        accessToken = nil
+        refreshToken = nil
+        currentUser = nil
+        isAuthenticated = false
+
+        Task {
+            await APIService.shared.setAccessToken(nil)
+        }
+
+        // Clear keychain
+        deleteFromKeychain(key: "accessToken")
+        deleteFromKeychain(key: "refreshToken")
+        deleteFromKeychain(key: "user")
+    }
 }
 
 enum AuthError: Error, LocalizedError {

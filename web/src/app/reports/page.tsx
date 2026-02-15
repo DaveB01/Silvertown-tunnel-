@@ -192,19 +192,10 @@ export default function ReportsPage() {
       let filename = '';
 
       if (type === 'inspections') {
-        // Fetch all inspections (with current filters)
+        // Fetch all inspections (no status filter for full export)
         const params = new URLSearchParams();
         params.append('limit', '1000');
-        if (inspectionFilter.status) params.append('status', inspectionFilter.status);
-        if (inspectionFilter.zone) params.append('zone', inspectionFilter.zone);
-        if (inspectionFilter.dateFrom) {
-          params.append('dateFrom', new Date(inspectionFilter.dateFrom).toISOString());
-        }
-        if (inspectionFilter.dateTo) {
-          const endDate = new Date(inspectionFilter.dateTo);
-          endDate.setHours(23, 59, 59, 999);
-          params.append('dateTo', endDate.toISOString());
-        }
+        // Don't filter by status for full export - get all inspections
 
         const response = await fetch(`${API_URL}/inspections?${params}`, {
           headers: { 'Authorization': `Bearer ${token}` },

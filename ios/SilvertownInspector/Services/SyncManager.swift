@@ -278,7 +278,7 @@ final class SyncManager {
     @MainActor
     private func pushPendingInspections(context: ModelContext) async throws -> Int {
         let descriptor = FetchDescriptor<Inspection>(
-            predicate: #Predicate { $0.syncStatusRaw == "pending" }
+            predicate: #Predicate { $0.syncStatusRaw == "pending" || $0.syncStatusRaw == "failed" }
         )
         let pending = try context.fetch(descriptor)
 
@@ -613,7 +613,7 @@ extension APIService {
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
         // Add auth header
-        if let token = await AuthManager.shared.accessToken {
+        if let token = await AuthManager.shared.getAccessToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 

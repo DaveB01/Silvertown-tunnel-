@@ -106,8 +106,11 @@ actor APIService {
                         isRetry: true
                     )
                 } catch {
-                    // Refresh failed, throw unauthorized
+                    // Refresh failed, force logout and throw unauthorized
                     print("❌ Token refresh failed: \(error)")
+                    await MainActor.run {
+                        AuthManager.shared.forceLogout()
+                    }
                     throw APIError.unauthorized
                 }
             }

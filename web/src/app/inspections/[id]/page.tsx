@@ -41,6 +41,7 @@ export default function InspectionDetailPage() {
   const [inspection, setInspection] = useState<Inspection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Load token
   useEffect(() => {
@@ -335,7 +336,11 @@ export default function InspectionDetailPage() {
               {(inspection.mediaCount || 0) > 0 ? (
                 <div className="grid grid-cols-4 gap-2">
                   {inspection.media?.map((m) => (
-                    <div key={m.id} className="aspect-square bg-gray-100 rounded overflow-hidden">
+                    <button
+                      key={m.id}
+                      onClick={() => setSelectedImage(m.signedUrl || m.signedThumbnailUrl || null)}
+                      className="aspect-square bg-gray-100 rounded overflow-hidden hover:ring-2 hover:ring-brand-primary cursor-pointer"
+                    >
                       {m.signedThumbnailUrl ? (
                         <img src={m.signedThumbnailUrl} alt={m.caption || 'Photo'} className="w-full h-full object-cover" />
                       ) : (
@@ -343,7 +348,7 @@ export default function InspectionDetailPage() {
                           <PhotoIcon className="w-5 h-5 text-gray-300" />
                         </div>
                       )}
-                    </div>
+                    </button>
                   ))}
                 </div>
               ) : (
@@ -462,6 +467,29 @@ export default function InspectionDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Image Lightbox */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300"
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={selectedImage}
+            alt="Full size"
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </Layout>
   );
 }

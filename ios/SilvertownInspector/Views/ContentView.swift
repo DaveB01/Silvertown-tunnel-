@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -750,6 +751,12 @@ struct InspectionFormView: View {
     @State private var showError = false
     @State private var errorMessage = ""
 
+    // Photos
+    @State private var selectedPhotos: [PhotosPickerItem] = []
+    @State private var capturedImages: [CapturedImage] = []
+    @State private var showCamera = false
+    @State private var showCameraUnavailableAlert = false
+
     private var hasDefect: Bool {
         guard let grade = selectedGrade else { return false }
         return grade != .grade1
@@ -910,6 +917,61 @@ struct InspectionFormView: View {
                 TextField("Any additional observations...", text: $comments, axis: .vertical)
                     .lineLimit(3...6)
             }
+
+            // Photos section
+            Section("Photos") {
+                if !capturedImages.isEmpty {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))], spacing: 8) {
+                        ForEach(capturedImages.indices, id: \.self) { index in
+                            ZStack(alignment: .topTrailing) {
+                                Image(uiImage: capturedImages[index].image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 80, height: 80)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                Button {
+                                    capturedImages.remove(at: index)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.red)
+                                        .background(Circle().fill(.white))
+                                }
+                                .offset(x: 4, y: -4)
+                            }
+                        }
+                    }
+                }
+
+                HStack {
+                    Button {
+                        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                            showCamera = true
+                        } else {
+                            showCameraUnavailableAlert = true
+                        }
+                    } label: {
+                        Label("Take Photo", systemImage: "camera")
+                    }
+
+                    Spacer()
+
+                    PhotosPicker(selection: $selectedPhotos, maxSelectionCount: 10, matching: .images) {
+                        Label("Library", systemImage: "photo.on.rectangle")
+                    }
+                }
+                .onChange(of: selectedPhotos) { _, newItems in
+                    Task {
+                        for item in newItems {
+                            if let data = try? await item.loadTransferable(type: Data.self),
+                               let image = UIImage(data: data) {
+                                capturedImages.append(CapturedImage(image: image))
+                            }
+                        }
+                        selectedPhotos = []
+                    }
+                }
+            }
         }
         .navigationTitle("New Inspection")
         .navigationBarTitleDisplayMode(.inline)
@@ -927,6 +989,18 @@ struct InspectionFormView: View {
                 }
                 .disabled(!canSave || isSaving)
             }
+        }
+        .sheet(isPresented: $showCamera) {
+            CameraView { image in
+                if let image = image {
+                    capturedImages.append(CapturedImage(image: image))
+                }
+            }
+        }
+        .alert("Camera Unavailable", isPresented: $showCameraUnavailableAlert) {
+            Button("OK") { }
+        } message: {
+            Text("Camera is not available on this device. Please use the photo library instead.")
         }
         .alert("Error", isPresented: $showError) {
             Button("OK") { }
@@ -966,6 +1040,21 @@ struct InspectionFormView: View {
         // Use offline-first approach via SyncManager
         Task { @MainActor in
             do {
+                // Save photos locally
+                var photoCaptures: [PhotoCapture] = []
+                for captured in capturedImages {
+                    if let data = captured.image.jpegData(compressionQuality: 0.8) {
+                        let filename = "photo_\(UUID().uuidString).jpg"
+                        let localPath = savePhotoLocally(data: data, filename: filename)
+                        photoCaptures.append(PhotoCapture(
+                            filename: filename,
+                            data: data,
+                            localPath: localPath,
+                            capturedAt: Date()
+                        ))
+                    }
+                }
+
                 // Get or create local Asset from API response
                 let localAsset = try SyncManager.shared.getOrCreateAsset(from: asset)
 
@@ -981,7 +1070,7 @@ struct InspectionFormView: View {
                     observedIssues: hasDefect && !observedIssues.isEmpty ? observedIssues : nil,
                     recommendedAction: hasDefect && !recommendedAction.isEmpty ? recommendedAction : nil,
                     followUpRequired: hasDefect ? followUpRequired : false,
-                    photos: []
+                    photos: photoCaptures
                 )
 
                 onComplete()
@@ -992,6 +1081,18 @@ struct InspectionFormView: View {
                 isSaving = false
             }
         }
+    }
+
+    private func savePhotoLocally(data: Data, filename: String) -> String {
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let photosPath = documentsPath.appendingPathComponent("Photos", isDirectory: true)
+
+        try? FileManager.default.createDirectory(at: photosPath, withIntermediateDirectories: true)
+
+        let filePath = photosPath.appendingPathComponent(filename)
+        try? data.write(to: filePath)
+
+        return filePath.path
     }
 }
 

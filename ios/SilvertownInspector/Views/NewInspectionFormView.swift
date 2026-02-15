@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import UIKit
 
 struct NewInspectionFormView: View {
     @Environment(\.modelContext) private var modelContext
@@ -23,6 +24,7 @@ struct NewInspectionFormView: View {
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var capturedImages: [CapturedImage] = []
     @State private var showCamera = false
+    @State private var showCameraUnavailableAlert = false
 
     // UI state
     @State private var isSaving = false
@@ -85,6 +87,11 @@ struct NewInspectionFormView: View {
                     capturedImages.append(CapturedImage(image: image))
                 }
             }
+        }
+        .alert("Camera Unavailable", isPresented: $showCameraUnavailableAlert) {
+            Button("OK") { }
+        } message: {
+            Text("Camera is not available on this device. Please use the photo library instead.")
         }
     }
 
@@ -237,7 +244,11 @@ struct NewInspectionFormView: View {
             // Add photo buttons
             HStack {
                 Button {
-                    showCamera = true
+                    if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                        showCamera = true
+                    } else {
+                        showCameraUnavailableAlert = true
+                    }
                 } label: {
                     Label("Take Photo", systemImage: "camera")
                 }
@@ -446,7 +457,12 @@ struct CameraView: UIViewControllerRepresentable {
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
-        picker.sourceType = .camera
+        // Check if camera is available, otherwise fall back to photo library
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            picker.sourceType = .camera
+        } else {
+            picker.sourceType = .photoLibrary
+        }
         picker.delegate = context.coordinator
         return picker
     }
