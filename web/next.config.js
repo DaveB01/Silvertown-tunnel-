@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
+  trailingSlash: true,
   // Disable static optimization for pages using useSearchParams
   experimental: {
     missingSuspenseWithCSRBailout: false,
