@@ -2,14 +2,12 @@ import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
 import { writeFile, mkdir } from 'fs/promises';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { mediaService } from '../../services/media.service.js';
 import { prisma } from '../../config/database.js';
 import { MediaType } from '@prisma/client';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const UPLOADS_DIR = join(__dirname, '..', '..', '..', 'uploads');
+const UPLOADS_DIR = join(process.cwd(), 'uploads');
 
 const uploadRequestSchema = z.object({
   filename: z.string().min(1),
