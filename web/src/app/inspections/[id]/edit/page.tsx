@@ -556,7 +556,7 @@ export default function EditInspectionPage() {
             </Link>
             <button
               type="submit"
-              disabled={isSubmitting || !conditionGrade || !inspectorName || (hasDefect && !defectSeverity)}
+              disabled={isSubmitting || !conditionGrade || !inspectorName || Boolean(hasDefect && !defectSeverity)}
               className="px-4 py-2 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Saving...' : 'Save Changes'}
