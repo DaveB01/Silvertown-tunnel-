@@ -599,7 +599,12 @@ extension APIService {
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
 
         // Make request
-        guard let url = URL(string: "http://localhost:3000/v1/media/inspections/\(inspectionId)/upload") else {
+        #if targetEnvironment(simulator)
+        let baseURL = "http://localhost:3000/v1"
+        #else
+        let baseURL = "https://silvertown-api.onrender.com/v1"
+        #endif
+        guard let url = URL(string: "\(baseURL)/media/inspections/\(inspectionId)/upload") else {
             throw APIError.invalidURL
         }
 

@@ -40,7 +40,7 @@ actor APIService {
             ?? "http://localhost:3000/v1"
         #else
         self.baseURL = ProcessInfo.processInfo.environment["API_BASE_URL"]
-            ?? "https://api.silvertown-inspect.infratec.co.uk/v1"
+            ?? "https://silvertown-api.onrender.com/v1"
         #endif
 
         let config = URLSessionConfiguration.default
