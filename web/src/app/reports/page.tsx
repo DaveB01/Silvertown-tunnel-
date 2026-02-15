@@ -200,6 +200,10 @@ export default function ReportsPage() {
         const response = await fetch(`${API_URL}/inspections?${params}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || errorData.error || `API error: ${response.status}`);
+        }
         const result = await response.json();
         data = (result.data || []).map((i: Inspection) => ({
           'Asset ID': i.asset?.assetId || '',
@@ -218,6 +222,10 @@ export default function ReportsPage() {
         const response = await fetch(`${API_URL}/assets?limit=5000`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || errorData.error || `API error: ${response.status}`);
+        }
         const result = await response.json();
         data = (result.data || []).map((a: Record<string, unknown>) => ({
           'Asset ID': a.assetId || '',
@@ -238,11 +246,19 @@ export default function ReportsPage() {
         const response = await fetch(`${API_URL}/inspections?limit=1000&priority=P1`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || errorData.error || `API error: ${response.status}`);
+        }
         const p1Result = await response.json();
 
         const response2 = await fetch(`${API_URL}/inspections?limit=1000&priority=P2`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
+        if (!response2.ok) {
+          const errorData = await response2.json().catch(() => ({}));
+          throw new Error(errorData.message || errorData.error || `API error: ${response2.status}`);
+        }
         const p2Result = await response2.json();
 
         const allPriority = [...(p1Result.data || []), ...(p2Result.data || [])];
