@@ -197,7 +197,7 @@ struct HomeView: View {
                 }
                 .padding(.vertical)
             }
-            .background(Color.brandLight.opacity(0.5))
+            .background(Color(.systemGray6))
             .navigationTitle("Silvertown Tunnel")
             .sheet(isPresented: $showAssetPicker) {
                 AssetPickerView()
@@ -1423,30 +1423,135 @@ struct InspectionsListView: View {
     @Query(sort: \Inspection.dateOfInspection, order: .reverse)
     private var inspections: [Inspection]
     @State private var filterStatus: SyncStatus?
+    @State private var filterZone: String?
+    @State private var filterType: String?
     @State private var syncManager = SyncManager.shared
 
+    // Get unique zones from inspections
+    private var zones: [String] {
+        Array(Set(inspections.compactMap { $0.asset?.zone })).sorted()
+    }
+
+    // Get unique types (level3) from inspections
+    private var assetTypes: [String] {
+        Array(Set(inspections.compactMap { $0.asset?.level3 })).sorted()
+    }
+
     var filteredInspections: [Inspection] {
-        if let status = filterStatus {
-            return inspections.filter { $0.syncStatus == status }
+        inspections.filter { inspection in
+            // Status filter
+            if let status = filterStatus, inspection.syncStatus != status {
+                return false
+            }
+            // Zone filter
+            if let zone = filterZone, inspection.asset?.zone != zone {
+                return false
+            }
+            // Type filter
+            if let type = filterType, inspection.asset?.level3 != type {
+                return false
+            }
+            return true
         }
-        return inspections
+    }
+
+    private var hasActiveFilters: Bool {
+        filterStatus != nil || filterZone != nil || filterType != nil
     }
 
     var body: some View {
         NavigationStack {
-            List {
-                if inspections.isEmpty {
-                    ContentUnavailableView(
-                        "No Inspections",
-                        systemImage: "clipboard",
-                        description: Text("Inspections you create will appear here")
-                    )
-                } else {
-                    ForEach(filteredInspections) { inspection in
-                        NavigationLink {
-                            InspectionDetailView(inspection: inspection)
+            VStack(spacing: 0) {
+                // Filter bar
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        // Zone filter
+                        Menu {
+                            Button("All Zones") { filterZone = nil }
+                            Divider()
+                            ForEach(zones, id: \.self) { zone in
+                                Button(zone) { filterZone = zone }
+                            }
                         } label: {
-                            InspectionRowView(inspection: inspection)
+                            HStack(spacing: 4) {
+                                Image(systemName: "mappin.circle.fill")
+                                Text(filterZone ?? "Zone")
+                                    .lineLimit(1)
+                            }
+                            .font(.subheadline)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(filterZone != nil ? Color.brandPrimary.opacity(0.1) : Color(.systemGray6))
+                            .foregroundColor(filterZone != nil ? .brandPrimary : .secondary)
+                            .cornerRadius(8)
+                        }
+
+                        // Type filter
+                        Menu {
+                            Button("All Types") { filterType = nil }
+                            Divider()
+                            ForEach(assetTypes, id: \.self) { type in
+                                Button(type) { filterType = type }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "cube.fill")
+                                Text(filterType ?? "Type")
+                                    .lineLimit(1)
+                            }
+                            .font(.subheadline)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(filterType != nil ? Color.brandPrimary.opacity(0.1) : Color(.systemGray6))
+                            .foregroundColor(filterType != nil ? .brandPrimary : .secondary)
+                            .cornerRadius(8)
+                        }
+
+                        // Clear filters button
+                        if hasActiveFilters {
+                            Button {
+                                filterStatus = nil
+                                filterZone = nil
+                                filterType = nil
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "xmark.circle.fill")
+                                    Text("Clear")
+                                }
+                                .font(.subheadline)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color.red.opacity(0.1))
+                                .foregroundColor(.red)
+                                .cornerRadius(8)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+                .background(Color(.systemBackground))
+
+                List {
+                    if inspections.isEmpty {
+                        ContentUnavailableView(
+                            "No Inspections",
+                            systemImage: "clipboard",
+                            description: Text("Inspections you create will appear here")
+                        )
+                    } else if filteredInspections.isEmpty {
+                        ContentUnavailableView(
+                            "No Matching Inspections",
+                            systemImage: "line.3.horizontal.decrease.circle",
+                            description: Text("Try adjusting your filters")
+                        )
+                    } else {
+                        ForEach(filteredInspections) { inspection in
+                            NavigationLink {
+                                InspectionDetailView(inspection: inspection)
+                            } label: {
+                                InspectionRowView(inspection: inspection)
+                            }
                         }
                     }
                 }
@@ -1485,7 +1590,7 @@ struct InspectionsListView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Button("All") { filterStatus = nil }
+                        Button("All Status") { filterStatus = nil }
                         Divider()
                         Button {
                             filterStatus = .pending

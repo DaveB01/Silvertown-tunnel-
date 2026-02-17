@@ -14,9 +14,9 @@ struct AssetListView: View {
         Array(Set(assets.map { $0.zone })).sorted()
     }
 
-    // Get unique level2 types from assets
+    // Get unique level3 types from assets (e.g., CCTV Cameras, Cables)
     private var assetTypes: [String] {
-        Array(Set(assets.map { $0.level2 })).sorted()
+        Array(Set(assets.map { $0.level3 })).sorted()
     }
 
     // Filtered assets
@@ -27,8 +27,8 @@ struct AssetListView: View {
                 return false
             }
 
-            // Type filter
-            if let type = selectedType, asset.level2 != type {
+            // Type filter (level3)
+            if let type = selectedType, asset.level3 != type {
                 return false
             }
 
@@ -57,7 +57,7 @@ struct AssetListView: View {
                     assetList
                 }
             }
-            .background(Color.brandLight.opacity(0.3))
+            .background(Color(.systemGray6))
             .navigationTitle("Assets")
             .searchable(text: $searchText, prompt: "Search by ID or type")
         }

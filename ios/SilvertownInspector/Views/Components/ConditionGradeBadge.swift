@@ -138,7 +138,7 @@ extension Color {
     static let brandPrimaryLight = Color(hex: "#004488")
     static let brandSecondary = Color(hex: "#FF6600")
     static let brandSecondaryDark = Color(hex: "#E55A00")
-    static let brandLight = Color(hex: "#F0F4F8")
+    static let brandLight = Color(hex: "#FAFBFC")  // Lighter for better contrast with blue text
 
     // Grade Colors - matching web UI
     static let grade1Color = Color(hex: "#10B981")  // Emerald
